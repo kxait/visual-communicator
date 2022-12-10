@@ -15,10 +15,12 @@ public class ClientThread implements Runnable {
     private final UUID clientId;
     private final Gson gson;
     private User user;
+    private final ClientDataProviderAdapter dataProvider;
 
-    public ClientThread(MessageBus bus, UUID clientId) {
+    public ClientThread(MessageBus bus, UUID clientId, ClientDataProviderAdapter dataProvider) {
         this.bus = bus;
         this.clientId = clientId;
+        this.dataProvider = dataProvider;
         System.out.println("client thread for " + clientId.toString() + " started");
         gson = new Gson();
     }

@@ -6,13 +6,16 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ClientDataProvider {
-    Conversation createNewConversation(UUID id, String name, List<UUID> recipients, UUID author);
+    Conversation getConversationById(UUID id, UUID sender);
+    Message getMessageById(UUID id, UUID sender);
+    User getUserById(UUID id);
+    User getAuthByToken(String token);
 
-    Message sendMessageToConversation(UUID id, String content, UUID sender);
+    List<Message> getMessagesByConversationId(UUID conversationId, UUID sender);
+    List<Conversation> getConversationsByUserId(UUID sender);
 
-    User getUserByAuthToken(String token);
+    List<User> getUsersByName(String name);
 
-    List<Conversation> getConversations(UUID sender);
-
-    List<Message> getMessagesInConversation(UUID sender, UUID conversationId);
+    Conversation createNewConversation(String name, List<UUID> recipients, UUID author);
+    Message newMessageInConversation(UUID conversationId, String content, UUID author);
 }

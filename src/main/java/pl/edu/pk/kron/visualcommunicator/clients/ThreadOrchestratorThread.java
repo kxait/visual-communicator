@@ -14,11 +14,13 @@ public class ThreadOrchestratorThread implements Runnable {
     private final Dictionary<UUID, Thread> clientThreads;
     private final MessageBus bus;
     private final Gson gson;
+    private final ClientDataProviderAdapter dataProvider;
 
-    public ThreadOrchestratorThread(MessageBus bus) {
+    public ThreadOrchestratorThread(MessageBus bus, ClientDataProviderAdapter dataProvider) {
         gson = new Gson();
         this.clientThreads = new Hashtable<>();
         this.bus = bus;
+        this.dataProvider = dataProvider;
     }
 
     @Override
@@ -41,7 +43,7 @@ public class ThreadOrchestratorThread implements Runnable {
 
             if(content.type() == ThreadOrchestratorMessageType.CONNECTED) {
                 var uuid = content.clientId();
-                var thread = new Thread(new ClientThread(bus, uuid));
+                var thread = new Thread(new ClientThread(bus, uuid, dataProvider));
                 thread.start();
                 clientThreads.put(uuid, thread);
             }

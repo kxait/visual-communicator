@@ -1,4 +1,4 @@
-package pl.edu.pk.kron.visualcommunicator.common.model.message_contents;
+package pl.edu.pk.kron.visualcommunicator.data_access.models;
 
 import java.util.UUID;
 

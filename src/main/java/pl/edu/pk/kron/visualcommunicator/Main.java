@@ -17,11 +17,11 @@ public class Main {
         var threadOrchestrator = new ThreadOrchestratorThread(bus);
         exe.submit(threadOrchestrator);
 
-        var server = new VisualCommunicatorWebsocketServer(PORT, bus);
+        var karol = new VisualCommunicatorWebsocketServer(PORT, bus);
 
-        var websocketSender = new WebsocketMessageSender(bus, server);
+        var websocketSender = new WebsocketMessageSender(bus, karol);
         exe.submit(websocketSender);
 
-        server.start();
+        karol.start();
     }
 }

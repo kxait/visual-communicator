@@ -21,6 +21,7 @@ public class WebsocketMessageSender implements Runnable {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
                     // killed by ???
+                    System.out.println("WebsocketMessageSender died");
                     break;
                 }
                 continue;

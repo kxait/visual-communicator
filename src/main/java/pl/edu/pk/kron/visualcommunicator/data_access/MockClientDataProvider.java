@@ -68,11 +68,7 @@ public class MockClientDataProvider implements ClientDataProvider {
 
     @Override
     public User getAuthByToken(String token) {
-        int x;
-        try {
-            x = Integer.parseInt(token);
-        }catch(Exception ignored){return null;}
-        return usersById.get(x);
+        return usersById.get(UUID.fromString(token));
     }
 
     @Override
@@ -89,7 +85,7 @@ public class MockClientDataProvider implements ClientDataProvider {
         return Collections
                 .list(conversationsById.elements())
                 .stream()
-                .filter(c -> c.author().equals(sender))
+                .filter(c -> c.recipients().contains(sender))
                 .toList();
     }
 

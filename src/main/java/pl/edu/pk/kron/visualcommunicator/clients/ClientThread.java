@@ -8,7 +8,6 @@ import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.User;
 import pl.edu.pk.kron.visualcommunicator.common.model.messages.*;
 
 import java.util.UUID;
-import java.util.function.Function;
 
 public class ClientThread implements Runnable {
     private final MessageBus bus;
@@ -48,6 +47,8 @@ public class ClientThread implements Runnable {
                 case CLIENT_GET_MESSAGES -> getMessages(gson.fromJson(m, GetMessages.class));
                 case CLIENT_SEND_MESSAGE -> sendMessageToConversation(gson.fromJson(m, SendMessageToConversation.class));
                 case CLIENT_CREATE_NEW_CONVERSATION -> createConversation(gson.fromJson(m, CreateConversation.class));
+                case SERVER_NEW_CONVERSATION -> null;
+                case SERVER_NEW_MESSAGE -> null;
                 default -> throw new IllegalStateException("Unexpected value: " + messageType);
             };
 
@@ -57,25 +58,62 @@ public class ClientThread implements Runnable {
     }
 
     private GetAuthResponse getAuth(GetAuth getAuth) {
-        user = new User(UUID.randomUUID(), UUID.randomUUID().toString());
-        return new GetAuthResponse(user);
+        var user = dataProvider.getAuthByToken(getAuth.getToken().getValue());
+        if(user != null) {
+            this.user = user;
+            return new GetAuthResponse(user);
+        }
+        return null;
     }
 
     private GetConversationsResponse getConversations(GetConversations getConversations) {
-        return null;
+        if(user == null) return null;
+        var conversations = dataProvider.getConversationsByUserId(user.id());
+        return new GetConversationsResponse(conversations);
     }
 
     private GetMessagesResponse getMessages(GetMessages getMessages) {
-        return null;
+        if(user == null) return null;
+        var messages = dataProvider.getMessagesByConversationId(getMessages.getConversationId(), user.id());
+        return new GetMessagesResponse(messages);
     }
 
     // produces NewMessageInConversation for recipients
     private SendMessageToConversationResponse sendMessageToConversation(SendMessageToConversation sendMessageToConversation) {
-        return null;
+        if(user == null) return null;
+
+        var message = dataProvider.newMessageInConversation(sendMessageToConversation.getConversationId(), sendMessageToConversation.getContent(), user.id());
+
+        var conversation = dataProvider.getConversationById(sendMessageToConversation.getConversationId(), user.id());
+        conversation
+                .recipients()
+                .stream()
+                .filter(r -> !r.equals(user.id()))
+                .map(r -> {
+                    var messageToWebsocket = gson.toJson(new NewMessageInConversation(message));
+                    return new BusMessage(messageToWebsocket, BusMessageType.MESSAGE_TO_WEBSOCKET, r);
+                })
+                .forEach(bus::pushOntoBus);
+
+        return new SendMessageToConversationResponse(message);
     }
 
     // produces NewConversation for recipients
     private CreateConversationResponse createConversation(CreateConversation createConversation) {
-        return null;
+        if(user == null) return null;
+
+        var conversation = dataProvider.createNewConversation("TODO", createConversation.getRecipients(), user.id());
+
+        conversation
+                .recipients()
+                .stream()
+                .filter(r -> !r.equals(user.id()))
+                .map(r -> {
+                    var messageToWebsocket = gson.toJson(new NewConversation(conversation));
+                    return new BusMessage(messageToWebsocket, BusMessageType.MESSAGE_TO_WEBSOCKET, r);
+                })
+                .forEach(bus::pushOntoBus);
+
+        return new CreateConversationResponse(conversation);
     }
 }

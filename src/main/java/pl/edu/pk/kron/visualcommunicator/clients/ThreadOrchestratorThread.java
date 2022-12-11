@@ -15,8 +15,10 @@ public class ThreadOrchestratorThread implements Runnable {
     private final MessageBus bus;
     private final Gson gson;
     private final ClientDataProviderAdapter dataProvider;
+    private final AuthenticatedUserRegistry userRegistry;
 
-    public ThreadOrchestratorThread(MessageBus bus, ClientDataProviderAdapter dataProvider) {
+    public ThreadOrchestratorThread(MessageBus bus, ClientDataProviderAdapter dataProvider, AuthenticatedUserRegistry userRegistry) {
+        this.userRegistry = userRegistry;
         gson = new Gson();
         this.clientThreads = new Hashtable<>();
         this.bus = bus;
@@ -43,7 +45,7 @@ public class ThreadOrchestratorThread implements Runnable {
 
             if(content.type() == ThreadOrchestratorMessageType.CONNECTED) {
                 var uuid = content.clientId();
-                var thread = new Thread(new ClientThread(bus, uuid, dataProvider));
+                var thread = new Thread(new ClientThread(bus, uuid, dataProvider, userRegistry));
                 thread.start();
                 clientThreads.put(uuid, thread);
             }

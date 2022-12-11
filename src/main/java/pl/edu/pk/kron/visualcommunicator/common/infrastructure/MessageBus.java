@@ -16,17 +16,16 @@ public class MessageBus {
         System.out.println("bus received message " + message.type() + ", " + message.jsonContent());
     }
 
-    public BusMessage pollByPredicate(Predicate<BusMessage> predicate) {
-        var x = messages
-                .stream()
-                .filter(predicate)
-                .findFirst()
-                .orElse(null);
-        if(x != null) {
-            messages.remove(x);
-            System.out.println("removed message " + x.type() + ", " + x.jsonContent());
-            return x;
+    public synchronized BusMessage pollByPredicate(Predicate<BusMessage> predicate) {
+        synchronized(messages) {
+            for (var message : messages) {
+                if (predicate.test(message)) {
+                    messages.remove(message);
+                    System.out.println("removed message " + message.type() + ", " + message.jsonContent());
+                    return message;
+                }
+            }
+            return null;
         }
-        return null;
     }
 }

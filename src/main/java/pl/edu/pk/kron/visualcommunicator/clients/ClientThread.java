@@ -15,11 +15,13 @@ public class ClientThread implements Runnable {
     private final Gson gson;
     private User user;
     private final ClientDataProviderAdapter dataProvider;
+    private final AuthenticatedUserRegistry userRegistry;
 
-    public ClientThread(MessageBus bus, UUID clientId, ClientDataProviderAdapter dataProvider) {
+    public ClientThread(MessageBus bus, UUID clientId, ClientDataProviderAdapter dataProvider, AuthenticatedUserRegistry userRegistry) {
         this.bus = bus;
         this.clientId = clientId;
         this.dataProvider = dataProvider;
+        this.userRegistry = userRegistry;
         System.out.println("client thread for " + clientId.toString() + " started");
         gson = new Gson();
     }
@@ -33,7 +35,6 @@ public class ClientThread implements Runnable {
                     Thread.sleep(10);
                 } catch (InterruptedException ignored) {
                     // killed by orchestrator
-                    System.out.println("client thread for " + clientId + " killed");
                     break;
                 }
                 continue;
@@ -55,12 +56,16 @@ public class ClientThread implements Runnable {
             var busMessage = new BusMessage(gson.toJson(response), BusMessageType.MESSAGE_TO_WEBSOCKET, clientId);
             bus.pushOntoBus(busMessage);
         }
+        System.out.println("client thread for " + clientId + " killed");
+        if(user != null)
+            userRegistry.userLeft(user.id());
     }
 
     private GetAuthResponse getAuth(GetAuth getAuth) {
         var user = dataProvider.getAuthByToken(getAuth.getToken().getValue());
-        if(user != null) {
+        if(user != null && this.user == null) {
             this.user = user;
+            userRegistry.newUserAuthenticated(clientId, user.id());
             return new GetAuthResponse(user);
         }
         return null;
@@ -89,9 +94,11 @@ public class ClientThread implements Runnable {
                 .recipients()
                 .stream()
                 .filter(r -> !r.equals(user.id()))
+                .filter(userRegistry::isUserIdLoggedIn)
                 .map(r -> {
+                    var clientId = userRegistry.getClientIdByUserId(r);
                     var messageToWebsocket = gson.toJson(new NewMessageInConversation(message));
-                    return new BusMessage(messageToWebsocket, BusMessageType.MESSAGE_TO_WEBSOCKET, r);
+                    return new BusMessage(messageToWebsocket, BusMessageType.MESSAGE_TO_WEBSOCKET, clientId);
                 })
                 .forEach(bus::pushOntoBus);
 
@@ -108,9 +115,11 @@ public class ClientThread implements Runnable {
                 .recipients()
                 .stream()
                 .filter(r -> !r.equals(user.id()))
+                .filter(userRegistry::isUserIdLoggedIn)
                 .map(r -> {
+                    var clientId = userRegistry.getClientIdByUserId(r);
                     var messageToWebsocket = gson.toJson(new NewConversation(conversation));
-                    return new BusMessage(messageToWebsocket, BusMessageType.MESSAGE_TO_WEBSOCKET, r);
+                    return new BusMessage(messageToWebsocket, BusMessageType.MESSAGE_TO_WEBSOCKET, clientId);
                 })
                 .forEach(bus::pushOntoBus);
 

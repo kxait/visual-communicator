@@ -1,4 +1,5 @@
 package pl.edu.pk.kron.visualcommunicator;
+import pl.edu.pk.kron.visualcommunicator.clients.AuthenticatedUserRegistry;
 import pl.edu.pk.kron.visualcommunicator.clients.ClientDataProviderAdapter;
 import pl.edu.pk.kron.visualcommunicator.clients.ThreadOrchestratorThread;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.MessageBus;
@@ -19,7 +20,9 @@ public class Main {
         var dataProvider = new MockClientDataProvider();
         var providerAdapter = new ClientDataProviderAdapter(dataProvider);
 
-        var threadOrchestrator = new ThreadOrchestratorThread(bus, providerAdapter);
+        var userRegistry = new AuthenticatedUserRegistry();
+
+        var threadOrchestrator = new ThreadOrchestratorThread(bus, providerAdapter, userRegistry);
         exe.submit(threadOrchestrator);
 
         var karol = new VisualCommunicatorWebsocketServer(PORT, bus);

@@ -19,14 +19,15 @@ public class WebsocketMessageSender implements Runnable {
             if(message == null) {
                 try {
                     Thread.sleep(10);
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     // killed by ???
-                    System.out.println("WebsocketMessageSender died");
+                    e.printStackTrace();
                     break;
                 }
                 continue;
             }
             server.sendToWebsocket(message.jsonContent(), message.recipientId());
         }
+        System.out.println("💀 WebsocketMessageSender died");
     }
 }

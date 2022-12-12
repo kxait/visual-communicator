@@ -1,14 +1,9 @@
-<script>
-    const socket = new WebSocket('ws://localhost:8887');
-    socket.addEventListener('open', e => {
-        console.debug('socket open');
-    });
-    socket.addEventListener('close', e => {
-        console.debug('socket closed');
-    });
-    socket.addEventListener('message', e => {
-        console.debug(b64_to_utf8(e.data));
-    })
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="module">
+    import { createPubsub } from './pubsub.js'
+
+    const $ = id => document.getElementById(id);
+    const { publish, subscribe } = createPubsub();
 
     function utf8_to_b64(str) {
         return window.btoa(unescape(encodeURIComponent(str)));
@@ -18,9 +13,13 @@
         return decodeURIComponent(escape(window.atob(str)));
     }
 
+    let state = {
+        socket: null
+    };
+
 
     const sendSocket = data => {
-        socket.send(utf8_to_b64(data));
+        state.socket.send(utf8_to_b64(data));
     }
 
     const messageTypes = {
@@ -76,4 +75,61 @@
     });
 
     const getMessageType = message => JSON.parse(message).type;
+
+    const login = e => {
+        const username = $("input-username").value;
+        const password = $("input-password").value;
+
+        var packet = createGetAuthTokenMessage(username, password);
+        const unsubscribe = subscribe(data => { handleLogin(data); unsubscribe(); });
+        sendSocket(packet);
+    }
+
+    const handleLogin = result => {
+        if(result == null) {
+            console.error("login error!");
+            return;
+        }
+
+        console.log("login success! " + JSON.stringify(result));
+    }
+
+    const main = () => {
+        state.socket = new WebSocket('ws://localhost:8887');
+        state.socket.addEventListener('open', e => {
+            console.debug('socket open');
+            subscribe(data => console.error(data));
+        });
+        state.socket.addEventListener('close', e => {
+            console.debug('socket closed');
+        });
+        state.socket.addEventListener('message', e => {
+            var data = JSON.parse(b64_to_utf8(e.data));
+            publish(data);
+        });
+    }
+
+    const exports = {main, login};
+    for(const i in exports)
+        window[i] = exports[i];
 </script>
+
+
+<body onload="main()">
+    <main>
+        <div id="login-screen">
+            <div id="logo-text">Visual Communicator</div>
+            <form onsubmit="return false">
+                <div>
+                    <input type="text" id="input-username" placeholder="Nazwa użytkownika">
+                </div>
+                <div>
+                    <input type="text" id="input-password" placeholder="Hasło">
+                </div>
+                <div>
+                    <button type="submit" onclick="login()">Zaloguj się</button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>

@@ -110,7 +110,7 @@ public class MockClientDataProvider implements ClientDataProvider {
                 .stream()
                 .filter(u -> u.name().equals(name))
                 .findFirst()
-                .get();
+                .orElse(null);
     }
 
     @Override

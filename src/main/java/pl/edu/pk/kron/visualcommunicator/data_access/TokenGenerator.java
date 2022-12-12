@@ -5,7 +5,7 @@ import java.util.Base64;
 
 public class TokenGenerator {
     public static String getNextAuthToken() {
-        var bytes = new byte[24];
+        var bytes = new byte[192];
         new SecureRandom().nextBytes(bytes);
 
         return Base64.getEncoder().encodeToString(bytes);

@@ -67,6 +67,8 @@ public class ClientDataProviderAdapter {
     }
 
     public User getUserByName(String name) {
+        var user = provider.getUserByName(name);
+        if(user == null) return null;
         return mapUserToCommonModel(provider.getUserByName(name));
     }
 

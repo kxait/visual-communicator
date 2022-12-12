@@ -1,17 +1,24 @@
 package pl.edu.pk.kron.visualcommunicator.common.model.messages;
 
 import pl.edu.pk.kron.visualcommunicator.common.model.MessageType;
+import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.Token;
 
 import java.util.UUID;
 
-public class GetAuthResponse extends MessageToWebsocket {
+public class GetAuthTokenResponse extends MessageToWebsocket {
+    private final Token token;
     private final UUID userId;
     private final String name;
 
-    public GetAuthResponse(UUID userId, String name) {
-        super(MessageType.CLIENT_GET_AUTH);
+    public GetAuthTokenResponse(Token token, UUID userId, String name) {
+        super(MessageType.CLIENT_GET_AUTH_TOKEN);
+        this.token = token;
         this.userId = userId;
         this.name = name;
+    }
+
+    public Token getToken() {
+        return token;
     }
 
     public UUID getUserId() {

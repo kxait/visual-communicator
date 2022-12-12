@@ -10,11 +10,11 @@ public interface ClientDataProvider {
     Message getMessageById(UUID id, UUID sender);
     User getUserById(UUID id);
     User getAuthByToken(String token);
-
+    AuthToken getNewAuthTokenForUser(UUID userId);
     List<Message> getMessagesByConversationId(UUID conversationId, UUID sender);
     List<Conversation> getConversationsByUserId(UUID sender);
 
-    List<User> getUsersByName(String name);
+    User getUserByName(String name);
 
     Conversation createNewConversation(String name, List<UUID> recipients, UUID author);
     Message newMessageInConversation(UUID conversationId, String content, UUID author);

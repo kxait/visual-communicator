@@ -2,6 +2,7 @@ package pl.edu.pk.kron.visualcommunicator.common.model;
 
 public enum MessageType {
     CLIENT_GET_AUTH,
+    CLIENT_GET_AUTH_TOKEN,
     CLIENT_GET_CONVERSATIONS,
     CLIENT_GET_MESSAGES,
     CLIENT_SEND_MESSAGE,

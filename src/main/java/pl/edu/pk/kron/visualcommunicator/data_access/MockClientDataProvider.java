@@ -1,5 +1,6 @@
 package pl.edu.pk.kron.visualcommunicator.data_access;
 
+import pl.edu.pk.kron.visualcommunicator.data_access.models.AuthToken;
 import pl.edu.pk.kron.visualcommunicator.data_access.models.Conversation;
 import pl.edu.pk.kron.visualcommunicator.data_access.models.Message;
 import pl.edu.pk.kron.visualcommunicator.data_access.models.User;
@@ -10,6 +11,7 @@ public class MockClientDataProvider implements ClientDataProvider {
     private final Dictionary<UUID, Conversation> conversationsById;
     private final Dictionary<UUID, User> usersById;
     private final Dictionary<UUID, Message> messagesById;
+    private final Dictionary<String, User> authTokens;
 
     public MockClientDataProvider() {
         conversationsById = new Hashtable<>();
@@ -25,10 +27,12 @@ public class MockClientDataProvider implements ClientDataProvider {
         usersById = new Hashtable<>();
         usersById.put(UUID.fromString("1c4c7732-789a-11ed-a1eb-0242ac120002"),
                 new User(UUID.fromString("1c4c7732-789a-11ed-a1eb-0242ac120002"),
-                    "pierwszy"));
+                    "pierwszy",
+                    "abc"));
         usersById.put(UUID.fromString("acb894d2-a8f2-4d76-bad6-326e96087058"),
                 new User(UUID.fromString("acb894d2-a8f2-4d76-bad6-326e96087058"),
-                    "drugi"));
+                    "drugi",
+                    "def"));
 
         messagesById = new Hashtable<>();
         messagesById.put(UUID.fromString("70e24fee-8ad0-4b7c-a5d4-de43123dd480"),
@@ -49,6 +53,8 @@ public class MockClientDataProvider implements ClientDataProvider {
                     UUID.fromString("1c4c7732-789a-11ed-a1eb-0242ac120002"),
                     "trzecia wiadomosc",
                     UUID.fromString("70e24fee-8ad0-4b7c-a5d4-de43123dd480")));
+
+        authTokens = new Hashtable<>();
     }
 
     @Override
@@ -68,7 +74,15 @@ public class MockClientDataProvider implements ClientDataProvider {
 
     @Override
     public User getAuthByToken(String token) {
-        return usersById.get(UUID.fromString(token));
+        return authTokens.get(token);
+    }
+
+    @Override
+    public AuthToken getNewAuthTokenForUser(UUID userId) {
+        var user = usersById.get(userId);
+        var tokenStr = TokenGenerator.getNextAuthToken();
+        authTokens.put(tokenStr, user);
+        return new AuthToken(user.id(), tokenStr);
     }
 
     @Override
@@ -90,12 +104,13 @@ public class MockClientDataProvider implements ClientDataProvider {
     }
 
     @Override
-    public List<User> getUsersByName(String name) {
+    public User getUserByName(String name) {
         return Collections
                 .list(usersById.elements())
                 .stream()
                 .filter(u -> u.name().equals(name))
-                .toList();
+                .findFirst()
+                .get();
     }
 
     @Override

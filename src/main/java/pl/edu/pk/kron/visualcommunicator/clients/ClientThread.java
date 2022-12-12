@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.BusMessage;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.BusMessageType;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.MessageBus;
+import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.Token;
 import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.User;
 import pl.edu.pk.kron.visualcommunicator.common.model.messages.*;
 
@@ -44,14 +45,17 @@ public class ClientThread implements Runnable {
             var messageType = gson.fromJson(m, MessageFromWebsocket.class).getType();
             var response = switch(messageType) {
                 case CLIENT_GET_AUTH -> getAuth(gson.fromJson(m, GetAuth.class));
+                case CLIENT_GET_AUTH_TOKEN -> getAuthToken(gson.fromJson(m, GetAuthToken.class));
                 case CLIENT_GET_CONVERSATIONS -> getConversations(gson.fromJson(m, GetConversations.class));
                 case CLIENT_GET_MESSAGES -> getMessages(gson.fromJson(m, GetMessages.class));
                 case CLIENT_SEND_MESSAGE -> sendMessageToConversation(gson.fromJson(m, SendMessageToConversation.class));
                 case CLIENT_CREATE_NEW_CONVERSATION -> createConversation(gson.fromJson(m, CreateConversation.class));
-                case SERVER_NEW_CONVERSATION -> null;
-                case SERVER_NEW_MESSAGE -> null;
-                default -> throw new IllegalStateException("Unexpected value: " + messageType);
+                default -> null;
             };
+
+            if(response == null) {
+                new Exception("unexpected messageType value " + messageType).printStackTrace();
+            }
 
             var busMessage = new BusMessage(gson.toJson(response), BusMessageType.MESSAGE_TO_WEBSOCKET, clientId);
             bus.pushOntoBus(busMessage);
@@ -62,11 +66,22 @@ public class ClientThread implements Runnable {
     }
 
     private GetAuthResponse getAuth(GetAuth getAuth) {
-        var user = dataProvider.getAuthByToken(getAuth.getToken().getValue());
+        var user = dataProvider.getAuthByToken(getAuth.getToken());
         if(user != null && this.user == null) {
             this.user = user;
             userRegistry.newUserAuthenticated(clientId, user.id());
-            return new GetAuthResponse(user);
+            return new GetAuthResponse(user.id(), user.name());
+        }
+        return null;
+    }
+
+    private GetAuthTokenResponse getAuthToken(GetAuthToken getAuthToken) {
+        var user = dataProvider.getUserByName(getAuthToken.getUserName());
+        if(user != null && this.user == null && user.passwordHash().equals(getAuthToken.getPasswordHash())) {
+            this.user = user;
+            userRegistry.newUserAuthenticated(clientId, user.id());
+            var token = dataProvider.getAuthTokenForUser(user.id());
+            return new GetAuthTokenResponse(new Token(token), user.id(), user.name());
         }
         return null;
     }
@@ -109,7 +124,7 @@ public class ClientThread implements Runnable {
     private CreateConversationResponse createConversation(CreateConversation createConversation) {
         if(user == null) return null;
 
-        var conversation = dataProvider.createNewConversation("TODO", createConversation.getRecipients(), user.id());
+        var conversation = dataProvider.createNewConversation(createConversation.getName(), createConversation.getRecipients(), user.id());
 
         conversation
                 .recipients()

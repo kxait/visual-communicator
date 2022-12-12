@@ -29,7 +29,8 @@ public class ClientDataProviderAdapter {
 
     private User mapUserToCommonModel(pl.edu.pk.kron.visualcommunicator.data_access.models.User dalUser) {
         return new User(dalUser.id(),
-                dalUser.name());
+                dalUser.name(),
+                dalUser.passwordHash());
     }
 
     public Conversation getConversationById(UUID id, UUID sender) {
@@ -43,6 +44,11 @@ public class ClientDataProviderAdapter {
     }
     public User getAuthByToken(String token) {
         return mapUserToCommonModel(provider.getAuthByToken(token));
+    }
+
+    public String getAuthTokenForUser(UUID userId) {
+        var token = provider.getNewAuthTokenForUser(userId);
+        return token.token();
     }
 
     public List<Message> getMessagesByConversationId(UUID conversationId, UUID sender) {
@@ -60,12 +66,8 @@ public class ClientDataProviderAdapter {
                 .toList();
     }
 
-    public List<User> getUsersByName(String name) {
-        return provider
-                .getUsersByName(name)
-                .stream()
-                .map(this::mapUserToCommonModel)
-                .toList();
+    public User getUserByName(String name) {
+        return mapUserToCommonModel(provider.getUserByName(name));
     }
 
     public Conversation createNewConversation(String name, List<UUID> recipients, UUID author) {

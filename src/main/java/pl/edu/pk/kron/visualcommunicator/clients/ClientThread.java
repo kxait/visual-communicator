@@ -61,7 +61,7 @@ public class ClientThread implements Runnable {
 
             if(response == null) {
                 new Exception("unexpected messageType value " + messageType).printStackTrace();
-                response = new Err(abstractMessage.getId(), new Error(true, "fuck you"));
+                response = new Err(abstractMessage.getId(), new Error(true, ":)"));
             }
 
             var busMessage = new BusMessage(gson.toJson(response), BusMessageType.MESSAGE_TO_WEBSOCKET, clientId);
@@ -126,6 +126,8 @@ public class ClientThread implements Runnable {
     // produces NewMessageInConversation for recipients
     private NewMessageInConversation sendMessageToConversation(SendMessageToConversation sendMessageToConversation) {
         if(user == null) return null;
+        if(sendMessageToConversation.getContent().equals(""))
+            return null;
 
         var message = dataProvider.newMessageInConversation(sendMessageToConversation.getConversationId(), sendMessageToConversation.getContent(), user.id());
 

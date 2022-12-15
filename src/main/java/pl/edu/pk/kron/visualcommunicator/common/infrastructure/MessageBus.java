@@ -11,9 +11,11 @@ public class MessageBus {
         messages = new LinkedList<>();
     }
 
-    public void pushOntoBus(BusMessage message) {
-        messages.add(message);
-        System.out.println("bus received message " + message.type() + ", " + message.jsonContent());
+    public synchronized void pushOntoBus(BusMessage message) {
+        synchronized(messages) {
+            messages.add(message);
+            System.out.println("bus received message " + message.type() + ", " + message.jsonContent());
+        }
     }
 
     public synchronized BusMessage pollByPredicate(Predicate<BusMessage> predicate) {

@@ -9,8 +9,8 @@ public class SendMessageToConversation extends MessageFromWebsocket {
     private final String content;
 
 
-    public SendMessageToConversation(UUID conversationId, String content) {
-        super(MessageType.CLIENT_SEND_MESSAGE);
+    public SendMessageToConversation(UUID id, UUID conversationId, String content) {
+        super(id, MessageType.CLIENT_SEND_MESSAGE);
 
         this.conversationId = conversationId;
         this.content = content;

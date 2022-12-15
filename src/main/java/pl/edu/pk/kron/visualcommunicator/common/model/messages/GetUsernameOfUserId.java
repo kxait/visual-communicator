@@ -4,21 +4,15 @@ import pl.edu.pk.kron.visualcommunicator.common.model.MessageType;
 
 import java.util.UUID;
 
-public class GetAuthResponse extends MessageToWebsocket {
+public class GetUsernameOfUserId extends MessageFromWebsocket {
     private final UUID userId;
-    private final String name;
 
-    public GetAuthResponse(UUID id, UUID userId, String name) {
-        super(MessageType.CLIENT_GET_AUTH, id);
+    public GetUsernameOfUserId(UUID id, UUID userId) {
+        super(id, MessageType.CLIENT_GET_USERNAME_OF_USERID);
         this.userId = userId;
-        this.name = name;
     }
 
     public UUID getUserId() {
         return userId;
-    }
-
-    public String getName() {
-        return name;
     }
 }

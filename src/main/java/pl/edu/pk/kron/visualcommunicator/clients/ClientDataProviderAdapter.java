@@ -24,7 +24,8 @@ public class ClientDataProviderAdapter {
         return new Message(dalMessage.id(),
                 dalMessage.authorUserId(),
                 dalMessage.content(),
-                dalMessage.conversationId());
+                dalMessage.conversationId(),
+                dalMessage.millis());
     }
 
     private User mapUserToCommonModel(pl.edu.pk.kron.visualcommunicator.data_access.models.User dalUser) {
@@ -43,7 +44,9 @@ public class ClientDataProviderAdapter {
         return mapUserToCommonModel(provider.getUserById(id));
     }
     public User getAuthByToken(String token) {
-        return mapUserToCommonModel(provider.getAuthByToken(token));
+        var user = provider.getAuthByToken(token);
+        if(user == null) return null;
+        return mapUserToCommonModel(user);
     }
 
     public String getAuthTokenForUser(UUID userId) {

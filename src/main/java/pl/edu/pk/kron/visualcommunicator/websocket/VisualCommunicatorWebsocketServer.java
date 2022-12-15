@@ -71,7 +71,7 @@ public class VisualCommunicatorWebsocketServer extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket webSocket, String s) {
-        var decoded = new String(Base64.getDecoder().decode(s));
+        var decoded = s;//new String(Base64.getDecoder().decode(s));
         System.out.println("websocket message received: addr=" + webSocket.getRemoteSocketAddress() + ", decoded=" + decoded + ", s=" + s);
         var client = clientBySocketAddress.get(webSocket.getRemoteSocketAddress());
         var id = client.getId();
@@ -99,7 +99,7 @@ public class VisualCommunicatorWebsocketServer extends WebSocketServer {
                 .findFirst()
                 .get();
 
-        var encoded = Base64.getEncoder().encodeToString(content.getBytes());
+        var encoded = content;//Base64.getEncoder().encodeToString(content.getBytes());
 
         connection.send(encoded);
     }

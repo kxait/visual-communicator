@@ -4,9 +4,8 @@ import pl.edu.pk.kron.visualcommunicator.common.model.MessageType;
 
 import java.util.UUID;
 
-public class GetConversations extends MessageFromWebsocket {
-
-    public GetConversations(UUID id) {
-        super(id, MessageType.CLIENT_GET_CONVERSATIONS);
+public class WhoAmI extends MessageFromWebsocket {
+    public WhoAmI(UUID id) {
+        super(id, MessageType.CLIENT_WHO_AM_I);
     }
 }

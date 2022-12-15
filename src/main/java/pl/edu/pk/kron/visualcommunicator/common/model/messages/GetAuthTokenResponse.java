@@ -10,8 +10,8 @@ public class GetAuthTokenResponse extends MessageToWebsocket {
     private final UUID userId;
     private final String name;
 
-    public GetAuthTokenResponse(Token token, UUID userId, String name) {
-        super(MessageType.CLIENT_GET_AUTH_TOKEN);
+    public GetAuthTokenResponse(UUID id, Token token, UUID userId, String name) {
+        super(MessageType.CLIENT_GET_AUTH_TOKEN, id);
         this.token = token;
         this.userId = userId;
         this.name = name;

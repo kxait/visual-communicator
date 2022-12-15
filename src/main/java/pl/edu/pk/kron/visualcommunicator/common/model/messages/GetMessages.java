@@ -7,8 +7,8 @@ import java.util.UUID;
 public class GetMessages extends MessageFromWebsocket {
     private final UUID conversationId;
 
-    public GetMessages(UUID conversationId) {
-        super(MessageType.CLIENT_GET_MESSAGES);
+    public GetMessages(UUID id, UUID conversationId) {
+        super(id, MessageType.CLIENT_GET_MESSAGES);
         this.conversationId = conversationId;
     }
 

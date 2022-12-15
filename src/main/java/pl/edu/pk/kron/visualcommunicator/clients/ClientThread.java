@@ -4,10 +4,13 @@ import com.google.gson.Gson;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.BusMessage;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.BusMessageType;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.MessageBus;
+import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.Error;
+import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.Message;
 import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.Token;
 import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.User;
 import pl.edu.pk.kron.visualcommunicator.common.model.messages.*;
 
+import java.util.Comparator;
 import java.util.UUID;
 
 public class ClientThread implements Runnable {
@@ -42,7 +45,8 @@ public class ClientThread implements Runnable {
             }
 
             var m = message.jsonContent();
-            var messageType = gson.fromJson(m, MessageFromWebsocket.class).getType();
+            var abstractMessage = gson.fromJson(m, MessageFromWebsocket.class);
+            var messageType = abstractMessage.getType();
             var response = switch(messageType) {
                 case CLIENT_GET_AUTH -> getAuth(gson.fromJson(m, GetAuth.class));
                 case CLIENT_GET_AUTH_TOKEN -> getAuthToken(gson.fromJson(m, GetAuthToken.class));
@@ -50,11 +54,14 @@ public class ClientThread implements Runnable {
                 case CLIENT_GET_MESSAGES -> getMessages(gson.fromJson(m, GetMessages.class));
                 case CLIENT_SEND_MESSAGE -> sendMessageToConversation(gson.fromJson(m, SendMessageToConversation.class));
                 case CLIENT_CREATE_NEW_CONVERSATION -> createConversation(gson.fromJson(m, CreateConversation.class));
+                case CLIENT_WHO_AM_I -> whoAmI(gson.fromJson(m, WhoAmI.class));
+                case CLIENT_GET_USERNAME_OF_USERID -> getUsernameOfUserId(gson.fromJson(m, GetUsernameOfUserId.class));
                 default -> null;
             };
 
             if(response == null) {
                 new Exception("unexpected messageType value " + messageType).printStackTrace();
+                response = new Err(abstractMessage.getId(), new Error(true, "fuck you"));
             }
 
             var busMessage = new BusMessage(gson.toJson(response), BusMessageType.MESSAGE_TO_WEBSOCKET, clientId);
@@ -65,12 +72,29 @@ public class ClientThread implements Runnable {
             userRegistry.userLeft(user.id());
     }
 
+    private GetUsernameOfUserIdResponse getUsernameOfUserId(GetUsernameOfUserId getUsernameOfUserId) {
+        if(user == null)
+            return null;
+
+        var userWithName = dataProvider.getUserById(getUsernameOfUserId.getUserId());
+        if(userWithName == null)
+            return null;
+
+        return new GetUsernameOfUserIdResponse(getUsernameOfUserId.getId(), userWithName.name());
+    }
+
+    private WhoAmIResponse whoAmI(WhoAmI whoAmI) {
+        if(user == null)
+            return null;
+        return new WhoAmIResponse(whoAmI.getId(), user.id(), user.name());
+    }
+
     private GetAuthResponse getAuth(GetAuth getAuth) {
         var user = dataProvider.getAuthByToken(getAuth.getToken());
         if(user != null && this.user == null) {
             this.user = user;
             userRegistry.newUserAuthenticated(clientId, user.id());
-            return new GetAuthResponse(user.id(), user.name());
+            return new GetAuthResponse(getAuth.getId(), user.id(), user.name());
         }
         return null;
     }
@@ -81,7 +105,7 @@ public class ClientThread implements Runnable {
             this.user = user;
             userRegistry.newUserAuthenticated(clientId, user.id());
             var token = dataProvider.getAuthTokenForUser(user.id());
-            return new GetAuthTokenResponse(new Token(token), user.id(), user.name());
+            return new GetAuthTokenResponse(getAuthToken.getId(), new Token(token), user.id(), user.name());
         }
         return null;
     }
@@ -89,17 +113,18 @@ public class ClientThread implements Runnable {
     private GetConversationsResponse getConversations(GetConversations getConversations) {
         if(user == null) return null;
         var conversations = dataProvider.getConversationsByUserId(user.id());
-        return new GetConversationsResponse(conversations);
+        return new GetConversationsResponse(getConversations.getId(), conversations);
     }
 
     private GetMessagesResponse getMessages(GetMessages getMessages) {
         if(user == null) return null;
         var messages = dataProvider.getMessagesByConversationId(getMessages.getConversationId(), user.id());
-        return new GetMessagesResponse(messages);
+        var messagesSorted = messages.stream().sorted(Comparator.comparingLong(Message::millis)).toList();
+        return new GetMessagesResponse(getMessages.getId(), messagesSorted);
     }
 
     // produces NewMessageInConversation for recipients
-    private SendMessageToConversationResponse sendMessageToConversation(SendMessageToConversation sendMessageToConversation) {
+    private NewMessageInConversation sendMessageToConversation(SendMessageToConversation sendMessageToConversation) {
         if(user == null) return null;
 
         var message = dataProvider.newMessageInConversation(sendMessageToConversation.getConversationId(), sendMessageToConversation.getContent(), user.id());
@@ -112,12 +137,12 @@ public class ClientThread implements Runnable {
                 .filter(userRegistry::isUserIdLoggedIn)
                 .map(r -> {
                     var clientId = userRegistry.getClientIdByUserId(r);
-                    var messageToWebsocket = gson.toJson(new NewMessageInConversation(message));
+                    var messageToWebsocket = gson.toJson(new NewMessageInConversation(sendMessageToConversation.getId(), message));
                     return new BusMessage(messageToWebsocket, BusMessageType.MESSAGE_TO_WEBSOCKET, clientId);
                 })
                 .forEach(bus::pushOntoBus);
 
-        return new SendMessageToConversationResponse(message);
+        return new NewMessageInConversation(sendMessageToConversation.getId(), message);
     }
 
     // produces NewConversation for recipients
@@ -133,11 +158,11 @@ public class ClientThread implements Runnable {
                 .filter(userRegistry::isUserIdLoggedIn)
                 .map(r -> {
                     var clientId = userRegistry.getClientIdByUserId(r);
-                    var messageToWebsocket = gson.toJson(new NewConversation(conversation));
+                    var messageToWebsocket = gson.toJson(new NewConversation(createConversation.getId(), conversation));
                     return new BusMessage(messageToWebsocket, BusMessageType.MESSAGE_TO_WEBSOCKET, clientId);
                 })
                 .forEach(bus::pushOntoBus);
 
-        return new CreateConversationResponse(conversation);
+        return new CreateConversationResponse(createConversation.getId(), conversation);
     }
 }

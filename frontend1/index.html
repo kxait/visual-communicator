@@ -1,0 +1,14 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="module">
+    import exports from './main.js';
+    for(const i in exports)
+        window[i] = exports[i];
+</script>
+<link rel="stylesheet" href="style.css">
+
+
+<body onload="main()">
+    <main>
+        <div id="root"></div>
+    </main>
+</body>

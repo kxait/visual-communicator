@@ -110,6 +110,14 @@ public class MockClientDataProvider implements ClientDataProvider {
     }
 
     @Override
+    public List<User> getUsersByPartOfName(String name) {
+        return Collections.list(usersById.elements())
+                .stream()
+                .filter(u -> u.name().contains(name))
+                .toList();
+    }
+
+    @Override
     public User getUserByName(String name) {
         return Collections
                 .list(usersById.elements())

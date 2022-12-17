@@ -5,17 +5,17 @@ const Login = ({ onLogin }) => {
         margin: 0 auto;
         width: fit-content;
     ` }, [
-        $$("h3", { id: "logo-text", innerText: "Visual Communicator" }, [
+        $$("h1", { id: "logo-text", innerText: "Visual Communicator", style: "text-align: center" }, [
             $$("div", { innerHTML: '&nbsp;' }),
-            $$("form", { onsubmit: () => false, style: "text-align: center;" }, [
+            $$("form", { onsubmit: () => false, style: "font-size: 0.5em" }, [
                 $$("div", {}, [
-                    $$("input", { type: "text", id: "input-username", placeholder: "Nazwa użytkownika"})
+                    $$("input", { style: "margin: 5px; width:100%; font-size: inherit; padding: 5px", type: "text", id: "input-username", placeholder: "Nazwa użytkownika"})
                 ]),
                 $$("div", {}, [
-                    $$("input", { type: "text", id: "input-password", placeholder: "Hasło"})
+                    $$("input", { style: "margin: 5px; width: 100%; font-size: inherit; padding: 5px", type: "password", id: "input-password", placeholder: "Hasło"})
                 ]),
                 $$("div", {}, [
-                    $$("button", { type: "submit", onclick: onLogin, innerText: "Zaloguj się" })
+                    $$("button", { style: "margin: 5px; width: 100%; font-size: inherit; padding: 5px", type: "submit", onclick: onLogin, innerText: "Zaloguj się" })
                 ]),
             ])
         ])

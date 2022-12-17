@@ -13,8 +13,22 @@ const makeRoot = content => document
     .querySelector("#root")
     .replaceWith($$("div", { id: "root" }, content));
 
+    
+const regeneratable = (dataGenerator, argsTld = {}) => {
+    let data = {
+        elem: dataGenerator(argsTld),
+        regenerate: (args = {}) => {
+            const x = dataGenerator(args);
+            data.elem.replaceWith(x);
+            data.elem = x;
+        }
+    }
+    return data;
+}
+
 export { 
     makeRoot,
     makeElem, 
-    $$ 
+    $$,
+    regeneratable
 }

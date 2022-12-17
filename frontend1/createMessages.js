@@ -62,6 +62,17 @@ const createGetUsernameOfUserIdMessage = userId => JSON.stringify({
     userId
 });
 
+const createGetAvailableMessageRecipientsMessage = () => JSON.stringify({
+    type: messageTypes.clientGetAvailableMessageRecipients,
+    id: uuidv4()
+});
+
+const createGetUsersByIdOrPartOfName = input => JSON.stringify({
+    type: messageTypes.clientGetUsersByIdOrPartOfName,
+    id: uuidv4(),
+    input
+});
+
 export {
     createCreateConversationMessage,
     createGetAuthMessage,
@@ -70,5 +81,7 @@ export {
     createGetMessagesMessage,
     createSendMessageToConversationMessage,
     createWhoAmIMessage,
-    createGetUsernameOfUserIdMessage
+    createGetUsernameOfUserIdMessage,
+    createGetAvailableMessageRecipientsMessage,
+    createGetUsersByIdOrPartOfName
 }

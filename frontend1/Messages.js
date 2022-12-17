@@ -1,10 +1,10 @@
 import { createGetMessagesMessage, createGetUsernameOfUserIdMessage } from "./createMessages.js";
-import { $$ } from "./elemMake.js";
+import { $$, regeneratable } from "./elemMake.js";
 import { Message } from "./Message.js";
 import { messageTypes } from "./messageTypes.js";
 import { sendSocket, subscribeSocket } from "./socket.js";
 
-const Messages = ({ conversationId, onSubscribe }) => {
+const Messages = ({ conversationId, onSubscribe, onSendMessage }) => {
     if(conversationId == null) {
         return $$("div", { innerText: "wybierz konwersacje!" });
     }
@@ -23,32 +23,44 @@ const Messages = ({ conversationId, onSubscribe }) => {
             }).catch(rej);        
     })
 
-    // messages {id, authorUserId, content, conversationId}
-
-    const generateMessagesElem = (messages = []) => {
-        const elem = $$("div", { className: "messages" })
+    const messages = regeneratable(({ messages = [] }) => {
+        const elem = $$("div", { className: "messages"})
         for(var i of messages) {
             let message = i.content;
             getUsernameById(i.authorUserId)
                 .then(username => {
                     const mess = Message({ author: username, message })
                     elem.appendChild(mess);
+                    elem.scrollTo(0, elem.scrollHeight);
                 }).catch(e => console.error(e));
         }
         return elem;
+    });
+
+    const sendMessage = () => {
+        if(conversationId == null) return;
+        const messageBox = document.querySelector("input#message-box");
+        const text = messageBox.value
+        messageBox.value = "";
+        if(text.trim() == "") return;
+        onSendMessage(text);
     }
 
-    let msgs = generateMessagesElem();
-    
+    const div = $$("div", { style: "height:100% "}, [
+        messages.elem,
+        $$("div", { className: "text-box" }, [
+            $$("form", { onsubmit: (e) => { sendMessage(); return false; } }, [
+                $$("input", { type:"text", id: "message-box" })
+            ])
+        ])
+    ]);
+
+        
     let messagesList = [];
 
     const appendMessage = message => { 
         messagesList.push(message.message); 
-        const ele = generateMessagesElem(messagesList);
-        msgs.replaceWith(ele);
-        msgs = ele;
-
-        msgs.scrollTo(0, msgs.scrollHeight);
+        messages.regenerate({ messages: messagesList });
     }
 
     const unsubscribe = subscribeSocket(data => {
@@ -62,15 +74,11 @@ const Messages = ({ conversationId, onSubscribe }) => {
     sendSocket(createGetMessagesMessage(conversationId))
         .then(data => {
             messagesList = data.messages;
-            const x = generateMessagesElem(messagesList);
-            msgs.replaceWith(x);
-            msgs = x;
-
-            msgs.scrollTo(0, msgs.scrollHeight);
+            messages.regenerate({ messages: messagesList });
         }).catch(e => console.error(e));
 
 
-    return msgs;
+    return div;
 }
 
 export default Messages;

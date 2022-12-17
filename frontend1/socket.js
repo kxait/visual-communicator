@@ -1,6 +1,7 @@
 import { setState, state } from './state.js'
 import {createPubsub} from './pubsub.js'
 import { messageTypes } from './messageTypes.js';
+import { createError } from './errorManager.js';
 
 const { publish, subscribe } = createPubsub();
 
@@ -24,11 +25,16 @@ const makeSocket = url => new Promise((res, rej) => {
 const sendSocket = data => new Promise((res, rej) => {
     const id = JSON.parse(data).id;
     const unsubscribe = subscribe(data => { 
-        if(data == null || data.id == null || (data.id === id && data.type === messageTypes.serverErr))
-            rej();
+        if(data == null || data.id == null) {
+            rej(data);
+        }
+        if(data.id === id && data.type === messageTypes.serverErr) {
+            rej(data);
+            createError(data.error.content);
+        }
         if(data != null && data.id === id) {
-            res(data);
             unsubscribe();
+            res(data);
         }
         
     });

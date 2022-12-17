@@ -1,7 +1,24 @@
 html {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background-color: #333;
+    background-color: #222;
     color: white;
+}
+
+main {
+    background-color: #333;
+}
+
+.cool-border {
+    border: 1px solid black;
+    border-radius: 10px;
+}
+
+.cool-border.shadow {
+    box-shadow: 0px 0px 5px #222;
+}
+
+.entry {
+    align-self: center;
 }
 
 div {
@@ -15,7 +32,6 @@ div {
 
 .main-panel-pane {
     flex-grow: 1;
-    border: 1px solid black;
     padding: 5px;
     margin: 5px;
 }
@@ -55,9 +71,11 @@ div {
     margin-top: auto;
 }
 
-#main-panel-right .text-box input {
-    background-color: #333;
+.text-box input {
+    background-color: #444;
     color: white;
+    width: 100%;
+    padding: 5px;
 }
 
 #main-panel-right .text-box form {
@@ -69,22 +87,60 @@ div {
     overflow-y: scroll;
 }
 
-#message-box {
-    width: 100%;
+.button.cool {
+    background-color: #ddd;
+    color: black;
     padding: 5px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 5px black;
 }
 
 .button {
-    font-weight: bold;
     cursor: pointer;
+    font-weight: bold;
+}
+
+.messages {
+    height: calc(100% - 50px);
 }
 
 main {
     margin: 0 auto;
     margin-top: 30px;
     max-width: 800px;
-    border: 1px solid black;
     padding: 5px;
     height: 80vh;
-    box-shadow: 0px 0px 5px #222;
+}
+
+#error-container {
+    left: 0;
+    padding: 0;
+    margin: 0 auto;
+    top: 10px;
+    position: absolute;
+    width: 100%;
+    pointer-events: none;
+}
+
+img.icon {
+    vertical-align: middle;
+    margin-right: 5px;
+    margin-left: 5px;
+}
+
+#error-container .error {
+    width: fit-content;
+    text-align: center;
+    border-radius: 5px;
+    border: 2px solid rgb(110, 0, 0);
+    margin: 0 auto;
+    margin-bottom: 10px;
+    max-width: 500px;
+    min-width: 5em;
+    padding: 5px;
+    background-color: rgb(182, 1, 1);
+}
+
+#error-container .error img {
+    vertical-align: middle;
 }

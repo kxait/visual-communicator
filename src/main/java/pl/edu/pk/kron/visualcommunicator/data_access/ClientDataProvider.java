@@ -13,6 +13,7 @@ public interface ClientDataProvider {
     AuthToken getNewAuthTokenForUser(UUID userId);
     List<Message> getMessagesByConversationId(UUID conversationId, UUID sender);
     List<Conversation> getConversationsByUserId(UUID sender);
+    List<User> getUsersByPartOfName(String name);
 
     User getUserByName(String name);
 

@@ -3,6 +3,7 @@ package pl.edu.pk.kron.visualcommunicator.clients;
 import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.*;
 import pl.edu.pk.kron.visualcommunicator.data_access.ClientDataProvider;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -76,9 +77,49 @@ public class ClientDataProviderAdapter {
     }
 
     public Conversation createNewConversation(String name, List<UUID> recipients, UUID author) {
+        var conversations = provider.getConversationsByUserId(author);
+        if(conversations
+                .stream()
+                .anyMatch(c -> new HashSet<>(c
+                        .recipients())
+                        .containsAll(recipients)))
+            return null;
+
         return mapConversationToCommonModel(provider.createNewConversation(name, recipients, author));
     }
     public Message newMessageInConversation(UUID conversationId, String content, UUID author) {
         return mapMessageToCommonModel(provider.newMessageInConversation(conversationId, content, author));
+    }
+
+    public List<User> getAvailableMessageRecipients(UUID sender) {
+        var conversations = getConversationsByUserId(sender);
+        return conversations
+                .stream()
+                .flatMap(x -> x.recipients().stream())
+                .distinct()
+                .filter(x -> !x.equals(sender))
+                .map(this::getUserById)
+                .toList();
+    }
+
+    public List<User> getUsersByPartOfNameOrId(UUID sender, String input) {
+        if(input.length() < 3)
+            return List.of();
+
+        try {
+            var uuid = UUID.fromString(input);
+            // didnt fail - is an id!
+            var user = getUserById(uuid);
+            if(user != null) {
+                // user exists!
+                return List.of(user);
+            }
+        }catch(Exception ignored) { /* :( */ }
+
+        return provider.getUsersByPartOfName(input)
+                .stream()
+                .map(this::mapUserToCommonModel)
+                .filter(u -> !u.id().equals(sender))
+                .toList();
     }
 }

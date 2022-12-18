@@ -91,9 +91,12 @@ public class ClientDataProviderAdapter {
         var conversations = provider.getConversationsByUserId(author);
         if(conversations
                 .stream()
-                .anyMatch(c -> new HashSet<>(c
-                        .recipients())
-                        .containsAll(recipients)))
+                .anyMatch(c ->
+                        new HashSet<>(c
+                            .recipients())
+                            .containsAll(recipients)
+                        && new HashSet<>(recipients)
+                                .containsAll(c.recipients())))
             return null;
 
         return mapConversationToCommonModel(provider.createNewConversation(name, recipients, author));

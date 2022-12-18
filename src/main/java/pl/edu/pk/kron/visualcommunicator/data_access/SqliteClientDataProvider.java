@@ -89,7 +89,8 @@ public class SqliteClientDataProvider implements ClientDataProvider {
             return e;
         }
         try {
-            var ignored = DriverManager.getConnection(connectionString);
+            var conn = DriverManager.getConnection(connectionString);
+            conn.close();
         }catch(SQLException e) {
             return e;
         }

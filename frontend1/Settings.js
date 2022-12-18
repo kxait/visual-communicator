@@ -1,4 +1,4 @@
-import { createAdminCreateNewUser, createWhoAmIMessage } from "./createMessages.js";
+import { createAdminCreateNewUser, createAdminGetAllUsers, createWhoAmIMessage } from "./createMessages.js";
 import { $$, regeneratable } from "./elemMake.js"
 import { sendSocket } from "./socket.js";
 import Icon from "./Icon.js";
@@ -11,12 +11,18 @@ const Settings = () => {
     const usernameElem = regeneratable(({ username = "" }) =>
         $$("input", { value: username, placeholder: "nazwa użytkownika" }));
 
-    sendSocket(createWhoAmIMessage())
+    const redo = () => sendSocket(createWhoAmIMessage())
         .then(whoAmI => {
             userIdElem.regenerate({ userId: whoAmI.userId });
             usernameElem.regenerate({ username: whoAmI.userName });
             adminPanel.regenerate({ isAdmin: whoAmI.isAdmin });
+
+            if(whoAmI.isAdmin === true) {
+                sendSocket(createAdminGetAllUsers())
+                    .then(data => allUsers.regenerate({ users: data.users }));
+            }
         });
+    redo();
 
     const onChangeUsername = () => {
         const username = usernameElem.elem.value;
@@ -38,8 +44,21 @@ const Settings = () => {
         sendSocket(createAdminCreateNewUser(username, password, false))
             .then(data => {
                 createNotification("udalo sie stworzyc uzytkownika");
+                redo();
             })
     }
+
+    const allUsers = regeneratable(({ users = [] }) => {
+        const getUserIcon = isAdmin => isAdmin
+            ? Icon({ path: "icons/shield.png" })
+            : Icon({ path: "icons/user.png" });
+
+        return $$("div", {}, 
+            users.map(user => $$("div", {}, [
+                getUserIcon(user.isAdmin),
+                $$("span", { innerText: user.name })
+            ])));
+    })
 
     const adminPanel = regeneratable(({ isAdmin = false }) => {
         return isAdmin
@@ -50,7 +69,7 @@ const Settings = () => {
                 ]),
                 $$("fieldset", {}, [
                     $$("legend", { innerText: "wszyscy użytkownicy"}),
-                    $$("div", { innerText: "coś tu kiedyś będzie"})
+                    allUsers.elem
                 ]),
                 $$("fieldset", {}, [
                     $$("legend", { innerText: "ustawienia administratora" }),

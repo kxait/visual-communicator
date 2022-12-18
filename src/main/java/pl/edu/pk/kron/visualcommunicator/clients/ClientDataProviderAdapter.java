@@ -140,4 +140,11 @@ public class ClientDataProviderAdapter {
             return null;
         return mapUserToCommonModel(user);
     }
+
+    public List<User> getAllUsers() {
+        return provider.getAllUsers()
+                .stream()
+                .map(this::mapUserToCommonModel)
+                .toList();
+    }
 }

@@ -82,6 +82,7 @@ public class ClientThread implements Runnable {
                 case CLIENT_GET_AVAILABLE_MESSAGE_RECIPIENTS -> getAvailableMessageRecipients(gson.fromJson(m, GetAvailableMessageRecipients.class));
                 case CLIENT_GET_USERS_BY_ID_OR_PART_OF_NAME -> getUsersByIdOrPartOfName(gson.fromJson(m, GetUsersByIdOrPartOfName.class));
                 case CLIENT_ADMIN_CREATE_NEW_USER -> adminCreateNewUser(gson.fromJson(m, AdminCreateNewUser.class));
+                case CLIENT_ADMIN_GET_ALL_USERS -> getAllUsers(gson.fromJson(m, AdminGetAllUsers.class));
                 default -> null;
             };
 
@@ -101,6 +102,17 @@ public class ClientThread implements Runnable {
         System.out.println("client thread for " + clientId + " killed");
         if(user != null)
             userRegistry.userLeft(user.id());
+    }
+
+    private ErrOr<AdminGetAllUsersResponse> getAllUsers(AdminGetAllUsers getAllUsers) {
+        if(user == null || user.isAdmin() == false)
+            return err(getAllUsers.getId(), "must be admin");
+
+        var users = dataProvider.getAllUsers();
+        if(users == null)
+            return err(getAllUsers.getId(), "something went wrong");
+
+        return new ErrOr<>(new AdminGetAllUsersResponse(getAllUsers.getId(), users));
     }
 
     private ErrOr<GetUsersByIdOrPartOfNameResponse> getUsersByIdOrPartOfName(GetUsersByIdOrPartOfName getUsersByIdOrPartOfName) {

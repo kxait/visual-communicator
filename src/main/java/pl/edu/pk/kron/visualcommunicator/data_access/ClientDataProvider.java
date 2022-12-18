@@ -15,6 +15,7 @@ public interface ClientDataProvider {
     List<Conversation> getConversationsByUserId(UUID sender);
     List<User> getUsersByPartOfName(String name);
     User createNewUser(String name, String password, boolean isAdmin);
+    List<User> getAllUsers();
 
     User getUserByName(String name);
 

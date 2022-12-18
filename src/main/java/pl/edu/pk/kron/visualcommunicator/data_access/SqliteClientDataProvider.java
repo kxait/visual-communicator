@@ -13,6 +13,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Function;
 
 class SqlStatements {
@@ -59,6 +60,8 @@ class SqlStatements {
 
     public static final String InsertNewUser = "INSERT INTO user (id, name, passwordHash, isAdmin) VALUES " +
             "(?, ?, ?, ?)";
+
+    public static final String GetAllUsers = "SELECT * FROM user";
 }
 
 public class SqliteClientDataProvider implements ClientDataProvider {
@@ -125,6 +128,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
 
                 return new Conversation(conversationId, name, recipients, authorId);
             }catch(SQLException e) {
+                e.printStackTrace();
                 return null;
             }
         });
@@ -152,6 +156,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
 
                 return new Message(id, authorId, content, conversationId, millis);
             }catch(SQLException e) {
+                e.printStackTrace();
                 return null;
             }
         });
@@ -173,6 +178,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
 
                 return new User(id, name, passwordHash, isAdmin);
             }catch(SQLException e) {
+                e.printStackTrace();
                 return null;
             }
         });
@@ -205,6 +211,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
 
                 return getUserById(userId);
             }catch(SQLException e) {
+                e.printStackTrace();
                 return null;
             }
         });
@@ -225,6 +232,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
 
                 return new AuthToken(userId, token, millis);
             }catch(SQLException e) {
+                e.printStackTrace();
                 return null;
             }
         });
@@ -252,6 +260,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
 
                 return messages;
             }catch(SQLException e) {
+                e.printStackTrace();
                 return null;
             }
         });
@@ -285,6 +294,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
 
                 return conversations;
             }catch(SQLException e) {
+                e.printStackTrace();
                 return null;
             }
         });
@@ -310,6 +320,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
 
                 return users;
             }catch(SQLException e) {
+                e.printStackTrace();
                 return null;
             }
         });
@@ -329,6 +340,31 @@ public class SqliteClientDataProvider implements ClientDataProvider {
 
                 return new User(id, name, password, isAdmin);
             }catch(SQLException e) {
+                e.printStackTrace();
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        return withConnection(connection -> {
+            try {
+                var stmt = connection.prepareStatement(SqlStatements.GetAllUsers);
+                var users = new LinkedList<User>();
+                var rs = stmt.executeQuery();
+                while(rs.next()) {
+                    var userId = UUID.fromString(rs.getString("id"));
+                    var name = rs.getString("name");
+                    var passwordHash = rs.getString("passwordHash");
+                    var isAdmin = rs.getBoolean("isAdmin");
+
+                    users.add(new User(userId, name, passwordHash, isAdmin));
+                }
+
+                return users;
+            }catch(SQLException e) {
+                e.printStackTrace();
                 return null;
             }
         });
@@ -351,6 +387,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
 
                 return new User(userId, userName, passwordHash, isAdmin);
             }catch(SQLException e) {
+                e.printStackTrace();
                 return null;
             }
         });
@@ -376,6 +413,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
 
                 return new Conversation(id, name, recipients, author);
             }catch(SQLException e) {
+                e.printStackTrace();
                 return null;
             }
         });
@@ -398,6 +436,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
 
                 return new Message(id, author, content, conversationId, now);
             }catch(SQLException e) {
+                e.printStackTrace();
                 return null;
             }
         });

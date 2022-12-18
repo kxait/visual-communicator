@@ -10,6 +10,7 @@ const messageTypes = {
     clientGetAvailableMessageRecipients: "CLIENT_GET_AVAILABLE_MESSAGE_RECIPIENTS",
     clientGetUsersByIdOrPartOfName: "CLIENT_GET_USERS_BY_ID_OR_PART_OF_NAME",
     clientAdminCreateNewUser: "CLIENT_ADMIN_CREATE_NEW_USER",
+    clientAdminGetAllUsers: "CLIENT_ADMIN_GET_ALL_USERS",
 
     serverPing: "SERVER_PING",
     serverNewMessage: "SERVER_NEW_MESSAGE",

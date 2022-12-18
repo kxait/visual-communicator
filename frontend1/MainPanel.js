@@ -28,7 +28,7 @@ const MainPanel = () => {
         messages.regenerate({mainPanelState: MainPanelState.welcomeScreen});
     }
 
-    const messages = regeneratable(({ conversationId, mainPanelState = MainPanelState.settings }) => 
+    const messages = regeneratable(({ conversationId, mainPanelState = MainPanelState.welcomeScreen }) => 
         mainPanelState == MainPanelState.newConversation
             ? NewConversation({ onCreated: onCreateConversation })
             : mainPanelState == MainPanelState.welcomeScreen || mainPanelState == MainPanelState.conversation

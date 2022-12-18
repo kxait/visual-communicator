@@ -247,9 +247,6 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                 stmt.setString(2, sender.toString());
                 var rs = stmt.executeQuery();
                 var messages = new LinkedList<Message>();
-                if(!rs.next())
-                    return messages;
-
                 while(rs.next()) {
                     var messageId = UUID.fromString(rs.getString("id"));
                     var authorId = UUID.fromString(rs.getString("authorId"));

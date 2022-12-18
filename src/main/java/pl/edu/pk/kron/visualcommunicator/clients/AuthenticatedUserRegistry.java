@@ -18,21 +18,30 @@ public class AuthenticatedUserRegistry {
     }
 
     public UUID getClientIdByUserId(UUID userId){
+        if(userId == null)
+            return null;
         return clientIdByUserId.get(userId);
     }
 
     public void newUserAuthenticated(UUID clientId, UUID userId) {
+        if(clientId == null || userId == null)
+            return;
         userIdByClientId.put(clientId, userId);
         clientIdByUserId.put(userId, clientId);
     }
 
     public void userLeft(UUID userId) {
         var clientId = clientIdByUserId.get(userId);
+        if(userId == null || clientId == null)
+            return;
         clientIdByUserId.remove(userId);
         userIdByClientId.remove(clientId);
+
     }
 
     public boolean isUserIdLoggedIn(UUID userId) {
+        if(userId == null)
+            return false;
         return clientIdByUserId.get(userId) != null;
     }
 }

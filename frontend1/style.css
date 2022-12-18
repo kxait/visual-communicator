@@ -36,6 +36,10 @@ div {
     margin: 5px;
 }
 
+#main-panel-left {
+    max-width: 30%;
+}
+
 #main-panel-right {
     flex-basis: 60%;
 }
@@ -107,7 +111,7 @@ div {
 main {
     margin: 0 auto;
     margin-top: 30px;
-    max-width: 800px;
+    max-width: 1200px;
     padding: 5px;
     height: 80vh;
 }
@@ -126,6 +130,23 @@ img.icon {
     vertical-align: middle;
     margin-right: 5px;
     margin-left: 5px;
+    height: 16px; width: 16px;
+    image-rendering: crisp-edges;
+}
+
+#error-container .notification {
+    width: fit-content;
+    text-align: center;
+    border-radius: 5px;
+    border: 2px solid rgb(0, 13, 97);
+    margin: 0 auto;
+    margin-bottom: 10px;
+    max-width: 500px;
+    min-width: 5em;
+    padding: 5px;
+    background-color: rgb(1, 64, 182);
+    cursor: pointer;
+    pointer-events: all;
 }
 
 #error-container .error {
@@ -139,6 +160,8 @@ img.icon {
     min-width: 5em;
     padding: 5px;
     background-color: rgb(182, 1, 1);
+    cursor: pointer;
+    pointer-events: all;
 }
 
 #error-container .error img {

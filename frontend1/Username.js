@@ -1,18 +1,23 @@
 import { createWhoAmIMessage } from "./createMessages.js";
 import { $$, regeneratable } from "./elemMake.js";
+import Icon from "./Icon.js";
 import { sendSocket } from "./socket.js";
 
 const Username = () => {
-    const usernamePanel = regeneratable(({ username = "" }) =>
+    const getIcon = isAdmin => isAdmin
+        ? Icon({ path: "icons/shield.png", alt: "admin icon" })
+        : Icon({ path: "icons/user_gray.png", alt: "user icon" });
+
+    const usernamePanel = regeneratable(({ username = "", isAdmin = false }) =>
         $$("div", {className: 'entry'}, [
-            $$("img", { alt: "user icon", src: "icons/user_gray.png", className: "icon"}),
+            getIcon(isAdmin),
             $$("span", { innerText: username })
         ])
     );
 
     sendSocket(createWhoAmIMessage())
         .then(data => {
-            usernamePanel.regenerate({ username: data.userName })
+            usernamePanel.regenerate({ username: data.userName, isAdmin: data.isAdmin })
         })
         .catch(e => {
             console.error(e);

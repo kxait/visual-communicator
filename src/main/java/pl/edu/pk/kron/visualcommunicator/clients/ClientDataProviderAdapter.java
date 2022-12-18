@@ -3,6 +3,11 @@ package pl.edu.pk.kron.visualcommunicator.clients;
 import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.*;
 import pl.edu.pk.kron.visualcommunicator.data_access.ClientDataProvider;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
+import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalQueries;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -32,7 +37,8 @@ public class ClientDataProviderAdapter {
     private User mapUserToCommonModel(pl.edu.pk.kron.visualcommunicator.data_access.models.User dalUser) {
         return new User(dalUser.id(),
                 dalUser.name(),
-                dalUser.passwordHash());
+                dalUser.passwordHash(),
+                dalUser.isAdmin());
     }
 
     public Conversation getConversationById(UUID id, UUID sender) {
@@ -56,8 +62,13 @@ public class ClientDataProviderAdapter {
     }
 
     public List<Message> getMessagesByConversationId(UUID conversationId, UUID sender) {
-        return provider
-                .getMessagesByConversationId(conversationId,sender)
+        var messages = provider
+                .getMessagesByConversationId(conversationId,sender);
+
+        if(messages == null)
+            return null;
+
+        return messages
                 .stream()
                 .map(this::mapMessageToCommonModel)
                 .toList();
@@ -121,5 +132,12 @@ public class ClientDataProviderAdapter {
                 .map(this::mapUserToCommonModel)
                 .filter(u -> !u.id().equals(sender))
                 .toList();
+    }
+
+    public User createNewUser(String name, String password, boolean isAdmin) {
+        var user = provider.createNewUser(name, password, isAdmin);
+        if(user == null)
+            return null;
+        return mapUserToCommonModel(user);
     }
 }

@@ -81,6 +81,7 @@ public class ClientThread implements Runnable {
                 case CLIENT_GET_USERNAME_OF_USERID -> getUsernameOfUserId(gson.fromJson(m, GetUsernameOfUserId.class));
                 case CLIENT_GET_AVAILABLE_MESSAGE_RECIPIENTS -> getAvailableMessageRecipients(gson.fromJson(m, GetAvailableMessageRecipients.class));
                 case CLIENT_GET_USERS_BY_ID_OR_PART_OF_NAME -> getUsersByIdOrPartOfName(gson.fromJson(m, GetUsersByIdOrPartOfName.class));
+                case CLIENT_ADMIN_CREATE_NEW_USER -> adminCreateNewUser(gson.fromJson(m, AdminCreateNewUser.class));
                 default -> null;
             };
 
@@ -138,10 +139,20 @@ public class ClientThread implements Runnable {
         return new ErrOr<>(new GetUsernameOfUserIdResponse(getUsernameOfUserId.getId(), userWithName.name()));
     }
 
+    private ErrOr<AdminCreateNewUserResponse> adminCreateNewUser(AdminCreateNewUser adminCreateNewUser) {
+        if(user == null || user.isAdmin() == false)
+            return err(adminCreateNewUser.getId(), "must be admin");
+
+        var user = dataProvider.createNewUser(adminCreateNewUser.getUsername(), adminCreateNewUser.getPassword(), adminCreateNewUser.isAdmin());
+        if(user == null)
+            return err(adminCreateNewUser.getId(), "something went wrong");
+        return new ErrOr<>(new AdminCreateNewUserResponse(adminCreateNewUser.getId(), user.id()));
+    }
+
     private ErrOr<WhoAmIResponse> whoAmI(WhoAmI whoAmI) {
         if(user == null)
             return err(whoAmI.getId(), "must be logged in");
-        return new ErrOr<>(new WhoAmIResponse(whoAmI.getId(), user.id(), user.name()));
+        return new ErrOr<>(new WhoAmIResponse(whoAmI.getId(), user.id(), user.name(), user.isAdmin()));
     }
 
     private ErrOr<GetAuthResponse> getAuth(GetAuth getAuth) {

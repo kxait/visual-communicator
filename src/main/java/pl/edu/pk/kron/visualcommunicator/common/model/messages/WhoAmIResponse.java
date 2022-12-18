@@ -7,11 +7,13 @@ import java.util.UUID;
 public class WhoAmIResponse extends MessageToWebsocket {
     private final UUID userId;
     private final String userName;
+    private final Boolean isAdmin;
 
-    public WhoAmIResponse(UUID id, UUID userId, String userName) {
+    public WhoAmIResponse(UUID id, UUID userId, String userName, Boolean isAdmin) {
         super(MessageType.CLIENT_WHO_AM_I, id);
         this.userId = userId;
         this.userName = userName;
+        this.isAdmin = isAdmin;
     }
 
     public UUID getUserId() {
@@ -20,5 +22,9 @@ public class WhoAmIResponse extends MessageToWebsocket {
 
     public String getUserName() {
         return userName;
+    }
+
+    public Boolean getAdmin() {
+        return isAdmin;
     }
 }

@@ -73,6 +73,14 @@ const createGetUsersByIdOrPartOfName = input => JSON.stringify({
     input
 });
 
+const createAdminCreateNewUser = (username, password, isAdmin) => JSON.stringify({
+    type: messageTypes.clientAdminCreateNewUser,
+    id: uuidv4(),
+    username,
+    password,
+    isAdmin
+});
+
 export {
     createCreateConversationMessage,
     createGetAuthMessage,
@@ -83,5 +91,6 @@ export {
     createWhoAmIMessage,
     createGetUsernameOfUserIdMessage,
     createGetAvailableMessageRecipientsMessage,
-    createGetUsersByIdOrPartOfName
+    createGetUsersByIdOrPartOfName,
+    createAdminCreateNewUser
 }

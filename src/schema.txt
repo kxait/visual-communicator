@@ -1,0 +1,68 @@
+table auth_token is
+	string userId
+	string token
+	number issuedMillis
+
+CREATE TABLE IF NOT EXISTS auth_token(
+	user_id INT,
+	token TEXT,
+	issued_millis INT,
+	FOREIGN KEY (user_id)
+		REFERENCES user (id)
+			ON DELETE CASCADE
+			ON UPDATE NO ACTION);
+
+table conversation is
+	string id
+	string name
+	string author
+
+CREATE TABLE IF NOT EXISTS conversation(
+	id TEXT,
+	name TEXT,
+	authorId TEXT,
+	PRIMARY KEY (id));
+
+table conversation_recipient is
+	string conversationId
+	string userId
+
+CREATE TABLE IF NOT EXISTS conversation_recipient(
+	conversationId TEXT,
+	userId TEXT,
+	PRIMARY KEY (conversationId, userId),
+	FOREIGN KEY (conversationId)
+		REFERENCES conversation (id)
+			ON DELETE CASCADE
+			ON UPDATE NO ACTION,
+	FOREIGN KEY (userId)
+		REFERENCES user (id)
+			ON DELETE CASCADE
+			ON UPDATE NO ACTION);
+
+table message is
+	string id
+	string authorId
+	string content
+	string conversationId
+	number millis
+
+CREATE TABLE IF NOT EXISTS message(
+	id TEXT,
+	authorId TEXT,
+	content TEXT,
+	conversationId TEXT,
+	millis INT,
+	PRIMARY KEY (id));
+
+table user is
+	string id
+	string name
+	string passwordHash
+
+CREATE TABLE IF NOT EXISTS user(
+	id TEXT,
+	name TEXT,
+	passwordHash TEXT,
+	PRIMARY KEY (id));
+

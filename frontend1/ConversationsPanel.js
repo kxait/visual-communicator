@@ -28,6 +28,8 @@ const ConversationsPanel = ({ onConversationChange, onNewConversation }) => {
                             }).catch(rej);
                     }else{
                         conversationNameById[i.id] = i.name;
+                        if(countConversations() >= data.conversations.length)
+                            res();
                     }
                 }
             }).catch(rej);

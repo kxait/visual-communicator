@@ -1,9 +1,11 @@
 package pl.edu.pk.kron.visualcommunicator.clients;
 
 import com.google.gson.Gson;
+import pl.edu.pk.kron.visualcommunicator.common.Hasher;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.BusMessage;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.BusMessageType;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.MessageBus;
+import pl.edu.pk.kron.visualcommunicator.common.model.MessageType;
 import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.*;
 import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.Error;
 import pl.edu.pk.kron.visualcommunicator.common.model.messages.*;
@@ -83,6 +85,11 @@ public class ClientThread implements Runnable {
                 case CLIENT_GET_USERS_BY_ID_OR_PART_OF_NAME -> getUsersByIdOrPartOfName(gson.fromJson(m, GetUsersByIdOrPartOfName.class));
                 case CLIENT_ADMIN_CREATE_NEW_USER -> adminCreateNewUser(gson.fromJson(m, AdminCreateNewUser.class));
                 case CLIENT_ADMIN_GET_ALL_USERS -> getAllUsers(gson.fromJson(m, AdminGetAllUsers.class));
+                case CLIENT_RENAME_ME -> renameMe(gson.fromJson(m, RenameMe.class));
+                case CLIENT_ADMIN_RENAME_USER -> adminRenameUser(gson.fromJson(m, AdminRenameUser.class));
+                case CLIENT_CHANGE_MY_PASSWORD -> changeMyPassword(gson.fromJson(m, ChangeMyPassword.class));
+                case CLIENT_ADMIN_CHANGE_USERS_PASSWORD -> adminChangeUserPassword(gson.fromJson(m, AdminChangeUserPassword.class));
+                case CLIENT_ADMIN_CHANGE_USER_ACTIVATED -> adminChangeUserActivated(gson.fromJson(m, AdminChangeUserActivated.class));
                 default -> null;
             };
 
@@ -104,8 +111,69 @@ public class ClientThread implements Runnable {
             userRegistry.userLeft(user.id());
     }
 
+    private ErrOr<GenericSuccessResponse> adminChangeUserActivated(AdminChangeUserActivated adminChangeUserActivated) {
+        if(user == null || !user.isAdmin())
+            return err(adminChangeUserActivated.getId(), "must be admin");
+
+        dataProvider.changeUserActivated(adminChangeUserActivated.getUserId(), adminChangeUserActivated.isActivated());
+        return new ErrOr<>(new GenericSuccessResponse(MessageType.CLIENT_ADMIN_CHANGE_USER_ACTIVATED, adminChangeUserActivated.getId(), true));
+    }
+
+    private ErrOr<GenericSuccessResponse> adminChangeUserPassword(AdminChangeUserPassword adminChangeUserPassword) {
+        if(user == null || !user.isAdmin())
+            return err(adminChangeUserPassword.getId(), "must be admin");
+
+        dataProvider.changeUserPassword(adminChangeUserPassword.getUserId(), adminChangeUserPassword.getNewPasswordHash());
+        return new ErrOr<>(new GenericSuccessResponse(MessageType.CLIENT_ADMIN_CHANGE_USERS_PASSWORD, adminChangeUserPassword.getId(), true));
+    }
+
+    private ErrOr<GenericSuccessResponse> changeMyPassword(ChangeMyPassword changeMyPassword) {
+        if(user == null)
+            return err(changeMyPassword.getId(), "must be logged in");
+
+        var sha256SaltedPassword = Hasher.sha256(user.passwordHash() + changeMyPassword.getSalt());
+        if(!sha256SaltedPassword.equals(changeMyPassword.getCurrentPasswordHash()))
+            return err(changeMyPassword.getId(), "wrong current password");
+
+        dataProvider.changeUserPassword(user.id(), changeMyPassword.getNewPasswordHash());
+
+        user = dataProvider.getUserById(user.id());
+
+        return new ErrOr<>(new GenericSuccessResponse(MessageType.CLIENT_CHANGE_MY_PASSWORD, changeMyPassword.getId(), true));
+    }
+
+    private ErrOr<GenericSuccessResponse> adminRenameUser(AdminRenameUser adminRenameUser) {
+        if(user == null || !user.isAdmin())
+            return err(adminRenameUser.getId(), "must be admin");
+
+        var newName = adminRenameUser.getNewName();
+        var userExists = dataProvider.getUserByName(newName) != null;
+        if(userExists)
+            return err(adminRenameUser.getId(), "user with this name already exists");
+
+        dataProvider.renameUser(adminRenameUser.getUserToRename(), newName);
+
+        return new ErrOr<>(new GenericSuccessResponse(MessageType.CLIENT_ADMIN_RENAME_USER, adminRenameUser.getId(), true));
+    }
+
+    private ErrOr<GenericSuccessResponse> renameMe(RenameMe renameMe) {
+        if(user == null)
+            return err(renameMe.getId(), "must be logged in");
+
+        var newName = renameMe.getNewName();
+        var userExists = dataProvider.getUserByName(newName) != null;
+        if(userExists)
+            return err(renameMe.getId(), "user with this name already exists");
+
+        dataProvider.renameUser(user.id(), newName);
+
+        user = dataProvider.getUserById(user.id());
+
+        return new ErrOr<>(new GenericSuccessResponse(MessageType.CLIENT_RENAME_ME, renameMe.getId(), true));
+    }
+
     private ErrOr<AdminGetAllUsersResponse> getAllUsers(AdminGetAllUsers getAllUsers) {
-        if(user == null || user.isAdmin() == false)
+        if(user == null || !user.isAdmin())
             return err(getAllUsers.getId(), "must be admin");
 
         var users = dataProvider.getAllUsers();
@@ -179,7 +247,10 @@ public class ClientThread implements Runnable {
 
     private ErrOr<GetAuthTokenResponse> getAuthToken(GetAuthToken getAuthToken) {
         var user = dataProvider.getUserByName(getAuthToken.getUserName());
-        if(user != null && this.user == null && user.passwordHash().equals(getAuthToken.getPasswordHash())) {
+
+        var dbPasswordHashedWithSalt = Hasher.sha256(user.passwordHash() + getAuthToken.getSalt());
+
+        if(user != null && this.user == null && dbPasswordHashedWithSalt.equals(getAuthToken.getPasswordHash())) {
             this.user = user;
             userRegistry.newUserAuthenticated(clientId, user.id());
             var token = dataProvider.getAuthTokenForUser(user.id());

@@ -22,11 +22,12 @@ const createGetAuthMessage = token => JSON.stringify({
 });
 
 // userName, passwordHash: string
-const createGetAuthTokenMessage = (userName, passwordHash) => JSON.stringify({
+const createGetAuthTokenMessage = (userName, passwordHash, salt) => JSON.stringify({
     type: messageTypes.clientGetAuthToken,
     id: uuidv4(),
     userName,
     passwordHash,
+    salt
 });
 
 const createGetConversationsMessage = conversationId => JSON.stringify({
@@ -86,6 +87,41 @@ const createAdminGetAllUsers = () => JSON.stringify({
     id: uuidv4()
 });
 
+const createClientRenameMe = newName => JSON.stringify({
+    type: messageTypes.clientRenameMe,
+    id: uuidv4(),
+    newName
+});
+
+const createClientChangeMyPassword = (currentPasswordHash, salt, newPasswordHash) => JSON.stringify({
+    type: messageTypes.clientChangeMyPassword,
+    id: uuidv4(),
+    currentPasswordHash,
+    salt,
+    newPasswordHash
+});
+
+const createAdminRenameUser = (userToRename, newName) => JSON.stringify({
+    type: messageTypes.clientAdminRenameUser,
+    id: uuidv4(),
+    userToRename,
+    newName
+});
+
+const createAdminChangeUserActivated = (userId, activated) => JSON.stringify({
+    type: messageTypes.clientAdminChangeUserActivated,
+    id: uuidv4(),
+    userId,
+    activated
+});
+
+const createAdminChangeUserPassword = (userId, newPasswordHash) => JSON.stringify({
+    type: messageTypes.clientAdminChangeUsersPassword,
+    id: uuidv4(),
+    userId,
+    newPasswordHash
+});
+
 export {
     createCreateConversationMessage,
     createGetAuthMessage,
@@ -98,5 +134,10 @@ export {
     createGetAvailableMessageRecipientsMessage,
     createGetUsersByIdOrPartOfName,
     createAdminCreateNewUser,
-    createAdminGetAllUsers
+    createAdminGetAllUsers,
+    createClientRenameMe,
+    createClientChangeMyPassword,
+    createAdminRenameUser,
+    createAdminChangeUserActivated,
+    createAdminChangeUserPassword
 }

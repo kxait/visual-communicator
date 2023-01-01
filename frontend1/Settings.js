@@ -1,8 +1,9 @@
-import { createAdminCreateNewUser, createAdminGetAllUsers, createWhoAmIMessage } from "./createMessages.js";
+import { createAdminCreateNewUser, createAdminGetAllUsers, createClientChangeMyPassword, createClientRenameMe, createWhoAmIMessage } from "./createMessages.js";
 import { $$, regeneratable } from "./elemMake.js"
 import { sendSocket } from "./socket.js";
 import Icon from "./Icon.js";
-import { createNotification } from "./errorManager.js";
+import { createError, createNotification } from "./errorManager.js";
+import { makeid, sha256 } from "./utils.js";
 
 const Settings = () => {
     const userIdElem = regeneratable(({ userId = "" }) => 
@@ -26,15 +27,43 @@ const Settings = () => {
 
     const onChangeUsername = () => {
         const username = usernameElem.elem.value;
-        console.log(username);
+
+        sendSocket(createClientRenameMe(username))
+            .then(data => {
+                createNotification("udalo sie zmienic nazwe");
+                redo();
+            });
     }
 
     const onChangePassword = () => {
-        const currentPassword = document.querySelector("#current-password").value;
-        const newPassword = document.querySelector("#new-password").value;
-        const newPasswordConfirm = document.querySelector("#new-password-confirm").value;
+        (async () => {
+            const currentPassword = document.querySelector("#current-password").value;
 
-        console.log(currentPassword, newPassword, newPasswordConfirm)
+            const newPassword = document.querySelector("#new-password").value;
+            const newPasswordConfirm = document.querySelector("#new-password-confirm").value;
+
+            if(newPassword != newPasswordConfirm){
+                return { success: false };
+            }
+
+            const salt = makeid(128);
+            const sha256SaltedOldPassword = await sha256(await sha256(currentPassword) + salt);
+            const sha256NewPassword = await sha256(newPassword);
+
+            return { success: true, data: { salt, sha256NewPassword, sha256SaltedOldPassword } };
+
+        })().then(({ success, data }) => {
+            if(!success) {
+                createError("hasla musza byc takie same")
+            } else {
+                console.log(data);
+                sendSocket(createClientChangeMyPassword(data.sha256SaltedOldPassword, data.salt, data.sha256NewPassword))
+                    .then(data => {
+                        createNotification("udalo sie zmienic haslo");
+                        redo();
+                    });
+            }
+        });
     }
 
     const onAddUser = () => {

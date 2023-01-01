@@ -19,6 +19,10 @@ public interface ClientDataProvider {
 
     User getUserByName(String name);
 
+    void renameUser(UUID id, String newName);
+    void changeUserPassword(UUID id, String newPasswordHash);
+    void setUserActivated(UUID id, boolean activated);
+
     Conversation createNewConversation(String name, List<UUID> recipients, UUID author);
     Message newMessageInConversation(UUID conversationId, String content, UUID author);
 }

@@ -11,6 +11,11 @@ const messageTypes = {
     clientGetUsersByIdOrPartOfName: "CLIENT_GET_USERS_BY_ID_OR_PART_OF_NAME",
     clientAdminCreateNewUser: "CLIENT_ADMIN_CREATE_NEW_USER",
     clientAdminGetAllUsers: "CLIENT_ADMIN_GET_ALL_USERS",
+    clientRenameMe: "CLIENT_RENAME_ME",
+    clientChangeMyPassword: "CLIENT_CHANGE_MY_PASSWORD",
+    clientAdminRenameUser: "CLIENT_ADMIN_RENAME_USER",
+    clientAdminChangeUsersPassword: "CLIENT_ADMIN_CHANGE_USERS_PASSWORD",
+    clientAdminChangeUserActivated: "CLIENT_ADMIN_CHANGE_USER_ACTIVATED",
 
     serverPing: "SERVER_PING",
     serverNewMessage: "SERVER_NEW_MESSAGE",

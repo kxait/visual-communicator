@@ -4,9 +4,7 @@ import pl.edu.pk.kron.visualcommunicator.clients.ClientDataProviderAdapter;
 import pl.edu.pk.kron.visualcommunicator.clients.ThreadOrchestratorThread;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.MessageBus;
 import pl.edu.pk.kron.visualcommunicator.data_access.SqliteClientDataProvider;
-import pl.edu.pk.kron.visualcommunicator.data_access.migrations.AdminUserMigration;
-import pl.edu.pk.kron.visualcommunicator.data_access.migrations.InitialSchemaMigration;
-import pl.edu.pk.kron.visualcommunicator.data_access.migrations.SqliteMigrationManager;
+import pl.edu.pk.kron.visualcommunicator.data_access.migrations.*;
 import pl.edu.pk.kron.visualcommunicator.websocket.VisualCommunicatorWebsocketServer;
 import pl.edu.pk.kron.visualcommunicator.websocket.WebsocketMessageSender;
 
@@ -23,12 +21,12 @@ public class Main {
 
         var bus = new MessageBus();
 
-        //var dataProvider = new MockClientDataProvider();
-
         var migrationManager = new SqliteMigrationManager(CONNECTION_STRING);
 
         migrationManager.addMigration("initial", new InitialSchemaMigration());
         migrationManager.addMigration("admin_user", new AdminUserMigration());
+        migrationManager.addMigration("hash_passwords", new HashPasswordsMigration());
+        migrationManager.addMigration("user_activated", new CreateIsUserActivatedMigration());
 
         var e = migrationManager.performMigrations();
         if(e != null) {

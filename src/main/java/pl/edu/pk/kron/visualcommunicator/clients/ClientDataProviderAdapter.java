@@ -1,5 +1,6 @@
 package pl.edu.pk.kron.visualcommunicator.clients;
 
+import pl.edu.pk.kron.visualcommunicator.common.Hasher;
 import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.*;
 import pl.edu.pk.kron.visualcommunicator.data_access.ClientDataProvider;
 
@@ -38,7 +39,8 @@ public class ClientDataProviderAdapter {
         return new User(dalUser.id(),
                 dalUser.name(),
                 dalUser.passwordHash(),
-                dalUser.isAdmin());
+                dalUser.isAdmin(),
+                dalUser.activated());
     }
 
     public Conversation getConversationById(UUID id, UUID sender) {
@@ -138,7 +140,9 @@ public class ClientDataProviderAdapter {
     }
 
     public User createNewUser(String name, String password, boolean isAdmin) {
-        var user = provider.createNewUser(name, password, isAdmin);
+        var sha256Password = Hasher.sha256(password);
+
+        var user = provider.createNewUser(name, sha256Password, isAdmin);
         if(user == null)
             return null;
         return mapUserToCommonModel(user);
@@ -149,5 +153,17 @@ public class ClientDataProviderAdapter {
                 .stream()
                 .map(this::mapUserToCommonModel)
                 .toList();
+    }
+
+    public void renameUser(UUID id, String newName) {
+        provider.renameUser(id, newName);
+    }
+
+    public void changeUserPassword(UUID id, String newPasswordHash) {
+        provider.changeUserPassword(id, newPasswordHash);
+    }
+
+    public void changeUserActivated(UUID id, boolean activated) {
+        provider.setUserActivated(id, activated);
     }
 }

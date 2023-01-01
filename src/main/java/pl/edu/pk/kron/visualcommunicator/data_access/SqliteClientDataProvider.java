@@ -13,56 +13,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Function;
-
-class SqlStatements {
-    public static final String GetUsersByPartOfName = "SELECT * FROM user WHERE name LIKE ?";
-
-    public static final String GetUserByName = "SELECT * FROM user WHERE name = ?";
-
-    public static final String NewMessageInConversation = "INSERT INTO message (id, authorId, content, conversationId, millis) VALUES " +
-            "(?, ?, ?, ?, ?)";
-
-    public static final String GetMessagesByConversationId = "SELECT * FROM message WHERE conversationId = ? " +
-            "AND conversationId IN (SELECT conversationId FROM conversation_recipient WHERE userId = ?)";
-
-    public static final String InsertNewConversation = "INSERT INTO conversation (id, name, authorId) VALUES " +
-            "(?, ?, ?)";
-
-    public static final String InsertNewConversationRecipient = "INSERT INTO conversation_recipient (conversationId, userId) VALUES " +
-            "(?, ?)";
-
-    public static final String GetRecipientsByConversationId = "SELECT userId FROM conversation_recipient " +
-            "WHERE conversationId = ?";
-
-    public static final String GetConversationsByUserId = "SELECT * FROM conversation WHERE id IN " +
-            "(SELECT conversationId FROM conversation_recipient WHERE userId = ?)";
-
-    public static final String GetAuthTokenByTokenValue = "SELECT * FROM auth_token WHERE token = ?";
-
-    // new millis, user id, token
-    public static final String UpdateTokenValueByUserIdAndTokenValue = "UPDATE auth_token SET issued_millis = ? WHERE user_id = ? AND token = ?";
-
-    public static final String GetConversationById = "SELECT * FROM conversation WHERE id = ? " +
-            "AND id IN (SELECT conversationId FROM conversation_recipient WHERE userId = ?)";
-
-    public static final String GetConversationRecipientsByConversationId = "SELECT userId FROM conversation_recipient " +
-            "WHERE conversationId = ?";
-
-    public static final String GetMessageById = "SELECT * FROM message WHERE id = ? AND conversationId IN " +
-            "(SELECT conversationId FROM conversation_recipient WHERE userId = ?)";
-
-    public static final String GetUserById = "SELECT * FROM user WHERE id = ?";
-
-    public static final String InsertNewAuthToken = "INSERT INTO auth_token (user_id, token, issued_millis) " +
-            "VALUES (?, ?, ?)";
-
-    public static final String InsertNewUser = "INSERT INTO user (id, name, passwordHash, isAdmin) VALUES " +
-            "(?, ?, ?, ?)";
-
-    public static final String GetAllUsers = "SELECT * FROM user";
-}
 
 public class SqliteClientDataProvider implements ClientDataProvider {
     private final String connectionString;
@@ -82,21 +33,6 @@ public class SqliteClientDataProvider implements ClientDataProvider {
         }
     }
 
-    public Exception connect() {
-        try {
-            Class.forName("org.sqlite.JDBC");
-        } catch (ClassNotFoundException e) {
-            return e;
-        }
-        try {
-            var conn = DriverManager.getConnection(connectionString);
-            conn.close();
-        }catch(SQLException e) {
-            return e;
-        }
-        return null;
-    }
-
     private Connection getConnection() throws SQLException {
         return DriverManager.getConnection(connectionString);
     }
@@ -105,7 +41,8 @@ public class SqliteClientDataProvider implements ClientDataProvider {
     public Conversation getConversationById(UUID id, UUID sender) {
         return withConnection(connection -> {
             try {
-                var stmt = connection.prepareStatement(SqlStatements.GetConversationById);
+                var stmt = connection.prepareStatement("SELECT * FROM conversation WHERE id = ? " +
+                        "AND id IN (SELECT conversationId FROM conversation_recipient WHERE userId = ?)");
                 stmt.setString(1, id.toString());
                 stmt.setString(2, sender.toString());
                 var rs = stmt.executeQuery();
@@ -117,7 +54,8 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                 var name = rs.getString("name");
                 var authorId = UUID.fromString(rs.getString("authorId"));
 
-                var recipientsStmt = connection.prepareStatement(SqlStatements.GetConversationRecipientsByConversationId);
+                var recipientsStmt = connection.prepareStatement("SELECT userId FROM conversation_recipient " +
+                        "WHERE conversationId = ?");
                 recipientsStmt.setString(1, id.toString());
                 var recipientsRs = recipientsStmt.executeQuery();
 
@@ -140,7 +78,8 @@ public class SqliteClientDataProvider implements ClientDataProvider {
     public Message getMessageById(UUID id, UUID sender) {
         return withConnection(connection -> {
             try {
-                var stmt = connection.prepareStatement(SqlStatements.GetMessageById);
+                var stmt = connection.prepareStatement("SELECT * FROM message WHERE id = ? AND conversationId IN " +
+                        "(SELECT conversationId FROM conversation_recipient WHERE userId = ?)");
                 stmt.setString(1, id.toString());
                 stmt.setString(2, sender.toString());
 
@@ -167,7 +106,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
     public User getUserById(UUID id) {
         return withConnection(connection -> {
             try {
-                var stmt = connection.prepareStatement(SqlStatements.GetUserById);
+                var stmt = connection.prepareStatement("SELECT * FROM user WHERE id = ?");
                 stmt.setString(1, id.toString());
                 var rs = stmt.executeQuery();
                 if(!rs.next())
@@ -176,8 +115,9 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                 var name = rs.getString("name");
                 var passwordHash = rs.getString("passwordHash");
                 var isAdmin = rs.getBoolean("isAdmin");
+                var activated = rs.getBoolean("activated");
 
-                return new User(id, name, passwordHash, isAdmin);
+                return new User(id, name, passwordHash, isAdmin, activated);
             }catch(SQLException e) {
                 e.printStackTrace();
                 return null;
@@ -189,7 +129,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
     public User getAuthByToken(String token) {
         return withConnection(connection -> {
             try {
-                var stmt = connection.prepareStatement(SqlStatements.GetAuthTokenByTokenValue);
+                var stmt = connection.prepareStatement("SELECT * FROM auth_token WHERE token = ?");
                 stmt.setString(1, token);
                 var rs = stmt.executeQuery();
                 if(!rs.next())
@@ -204,7 +144,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
 
                 // update the token for 24h here
                 var oneDayFromNow = Instant.now().plus(24, ChronoUnit.DAYS).toEpochMilli();
-                var updateTokenStmt = connection.prepareStatement(SqlStatements.UpdateTokenValueByUserIdAndTokenValue);
+                var updateTokenStmt = connection.prepareStatement("UPDATE auth_token SET issued_millis = ? WHERE user_id = ? AND token = ?");
                 updateTokenStmt.setLong(1, oneDayFromNow);
                 updateTokenStmt.setString(2, userId.toString());
                 updateTokenStmt.setString(3, token);
@@ -222,7 +162,8 @@ public class SqliteClientDataProvider implements ClientDataProvider {
     public AuthToken getNewAuthTokenForUser(UUID userId) {
         return withConnection(connection -> {
             try {
-                var stmt = connection.prepareStatement(SqlStatements.InsertNewAuthToken);
+                var stmt = connection.prepareStatement("INSERT INTO auth_token (user_id, token, issued_millis) " +
+                        "VALUES (?, ?, ?)");
                 stmt.setString(1, userId.toString());
                 var token = TokenGenerator.getNextAuthToken();
                 stmt.setString(2, token);
@@ -243,7 +184,8 @@ public class SqliteClientDataProvider implements ClientDataProvider {
     public List<Message> getMessagesByConversationId(UUID conversationId, UUID sender) {
         return withConnection(connection -> {
             try {
-                var stmt = connection.prepareStatement(SqlStatements.GetMessagesByConversationId);
+                var stmt = connection.prepareStatement("SELECT * FROM message WHERE conversationId = ? " +
+                        "AND conversationId IN (SELECT conversationId FROM conversation_recipient WHERE userId = ?)");
                 stmt.setString(1, conversationId.toString());
                 stmt.setString(2, sender.toString());
                 var rs = stmt.executeQuery();
@@ -268,7 +210,8 @@ public class SqliteClientDataProvider implements ClientDataProvider {
     public List<Conversation> getConversationsByUserId(UUID sender) {
         return withConnection(connection -> {
             try {
-                var stmt = connection.prepareStatement(SqlStatements.GetConversationsByUserId);
+                var stmt = connection.prepareStatement("SELECT * FROM conversation WHERE id IN " +
+                        "(SELECT conversationId FROM conversation_recipient WHERE userId = ?)");
                 stmt.setString(1, sender.toString());
                 var rs = stmt.executeQuery();
                 var conversations = new LinkedList<Conversation>();
@@ -278,7 +221,8 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                     var authorId = UUID.fromString(rs.getString("authorId"));
 
                     var recipients = new LinkedList<UUID>();
-                    var recipientsStmt = connection.prepareStatement(SqlStatements.GetRecipientsByConversationId);
+                    var recipientsStmt = connection.prepareStatement("SELECT userId FROM conversation_recipient " +
+                            "WHERE conversationId = ?");
                     recipientsStmt.setString(1, conversationId.toString());
                     var recipientsRs = recipientsStmt.executeQuery();
                     while(recipientsRs.next()) {
@@ -302,7 +246,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
     public List<User> getUsersByPartOfName(String name) {
         return withConnection(connection -> {
             try {
-                var stmt = connection.prepareStatement(SqlStatements.GetUsersByPartOfName);
+                var stmt = connection.prepareStatement("SELECT * FROM user WHERE name LIKE ?");
                 stmt.setString(1, String.format("%%%s%%", name));
                 var rs = stmt.executeQuery();
                 var users = new LinkedList<User>();
@@ -311,8 +255,9 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                     var userName = rs.getString("name");
                     var passwordHash = rs.getString("passwordHash");
                     var isAdmin = rs.getBoolean("isAdmin");
+                    var activated = rs.getBoolean("activated");
 
-                    var user = new User(userId, userName, passwordHash, isAdmin);
+                    var user = new User(userId, userName, passwordHash, isAdmin, activated);
                     users.add(user);
                 }
 
@@ -329,14 +274,17 @@ public class SqliteClientDataProvider implements ClientDataProvider {
         return withConnection(connection -> {
             try {
                 var id = UUID.randomUUID();
-                var stmt = connection.prepareStatement(SqlStatements.InsertNewUser);
+                var stmt = connection.prepareStatement("INSERT INTO user (id, name, passwordHash, isAdmin, activated) VALUES " +
+                        "(?, ?, ?, ?, ?)");
                 stmt.setString(1, id.toString());
                 stmt.setString(2, name);
                 stmt.setString(3, password);
                 stmt.setBoolean(4, isAdmin);
+                // activated
+                stmt.setBoolean(5, false);
                 stmt.execute();
 
-                return new User(id, name, password, isAdmin);
+                return new User(id, name, password, isAdmin, false);
             }catch(SQLException e) {
                 e.printStackTrace();
                 return null;
@@ -348,7 +296,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
     public List<User> getAllUsers() {
         return withConnection(connection -> {
             try {
-                var stmt = connection.prepareStatement(SqlStatements.GetAllUsers);
+                var stmt = connection.prepareStatement("SELECT * FROM user");
                 var users = new LinkedList<User>();
                 var rs = stmt.executeQuery();
                 while(rs.next()) {
@@ -356,8 +304,9 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                     var name = rs.getString("name");
                     var passwordHash = rs.getString("passwordHash");
                     var isAdmin = rs.getBoolean("isAdmin");
+                    var activated = rs.getBoolean("activated");
 
-                    users.add(new User(userId, name, passwordHash, isAdmin));
+                    users.add(new User(userId, name, passwordHash, isAdmin, activated));
                 }
 
                 return users;
@@ -372,7 +321,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
     public User getUserByName(String name) {
         return withConnection(connection -> {
             try {
-                var stmt = connection.prepareStatement(SqlStatements.GetUserByName);
+                var stmt = connection.prepareStatement("SELECT * FROM user WHERE name = ?");
                 stmt.setString(1, name);
                 var rs = stmt.executeQuery();
                 if(!rs.next())
@@ -382,8 +331,57 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                 var userName = rs.getString("name");
                 var passwordHash = rs.getString("passwordHash");
                 var isAdmin = rs.getBoolean("isAdmin");
+                var activated = rs.getBoolean("activated");
 
-                return new User(userId, userName, passwordHash, isAdmin);
+                return new User(userId, userName, passwordHash, isAdmin, activated);
+            }catch(SQLException e) {
+                e.printStackTrace();
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public void renameUser(UUID id, String newName) {
+        withConnection(connection -> {
+            try {
+                var stmt = connection.prepareStatement("UPDATE user SET name = ? WHERE id = ?");
+                stmt.setString(1, newName);
+                stmt.setString(2, id.toString());
+                stmt.executeUpdate();
+                return null;
+            }catch(SQLException e) {
+                e.printStackTrace();
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public void changeUserPassword(UUID id, String newPasswordHash) {
+        withConnection(connection -> {
+            try {
+                var stmt = connection.prepareStatement("UPDATE user SET passwordHash = ? WHERE id = ?");
+                stmt.setString(1, newPasswordHash);
+                stmt.setString(2, id.toString());
+                stmt.executeUpdate();
+                return null;
+            }catch(SQLException e) {
+                e.printStackTrace();
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public void setUserActivated(UUID id, boolean activated) {
+        withConnection(connection -> {
+            try {
+                var stmt = connection.prepareStatement("UPDATE user SET activated = ? WHERE id = ?");
+                stmt.setBoolean(1, activated);
+                stmt.setString(2, id.toString());
+                stmt.executeUpdate();
+                return null;
             }catch(SQLException e) {
                 e.printStackTrace();
                 return null;
@@ -395,7 +393,8 @@ public class SqliteClientDataProvider implements ClientDataProvider {
     public Conversation createNewConversation(String name, List<UUID> recipients, UUID author) {
         return withConnection(connection -> {
             try {
-                var stmt = connection.prepareStatement(SqlStatements.InsertNewConversation);
+                var stmt = connection.prepareStatement("INSERT INTO conversation (id, name, authorId) VALUES " +
+                        "(?, ?, ?)");
                 var id = UUID.randomUUID();
                 stmt.setString(1, id.toString());
                 stmt.setString(2, name);
@@ -403,7 +402,8 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                 stmt.executeUpdate();
 
                 for(var recipient : recipients) {
-                    var recipientStmt = connection.prepareStatement(SqlStatements.InsertNewConversationRecipient);
+                    var recipientStmt = connection.prepareStatement("INSERT INTO conversation_recipient (conversationId, userId) VALUES " +
+                            "(?, ?)");
                     recipientStmt.setString(1, id.toString());
                     recipientStmt.setString(2, recipient.toString());
                     recipientStmt.executeUpdate();
@@ -421,7 +421,8 @@ public class SqliteClientDataProvider implements ClientDataProvider {
     public Message newMessageInConversation(UUID conversationId, String content, UUID author) {
         return withConnection(connection -> {
             try {
-                var stmt = connection.prepareStatement(SqlStatements.NewMessageInConversation);
+                var stmt = connection.prepareStatement("INSERT INTO message (id, authorId, content, conversationId, millis) VALUES " +
+                        "(?, ?, ?, ?, ?)");
                 var id = UUID.randomUUID();
                 stmt.setString(1, id.toString());
                 stmt.setString(2, author.toString());

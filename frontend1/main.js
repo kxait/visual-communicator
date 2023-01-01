@@ -3,6 +3,7 @@ import { makeRoot } from './elemMake.js';
 import Login from './Login.js';
 import MainPanel from './MainPanel.js';
 import { sendSocket, makeSocket, subscribeSocket } from './socket.js';
+import { makeid, sha256 } from './utils.js';
 
 const isLoggedIn = () => {
     const x = localStorage.getItem("authToken");
@@ -33,8 +34,12 @@ const login = async () => {
     const $ = data => document.querySelector(data);
     const username = $("#input-username").value;
     const password = $("#input-password").value;
+
+    const sha256Password = await sha256(password);
+    const salt = makeid(128);
+    const sha256PasswordWithSalt = await sha256(sha256Password + salt);
     
-    var packet = messages.createGetAuthTokenMessage(username, password);
+    var packet = messages.createGetAuthTokenMessage(username, sha256PasswordWithSalt, salt);
     const result = await sendSocket(packet)
     handleLogin(result);
 }

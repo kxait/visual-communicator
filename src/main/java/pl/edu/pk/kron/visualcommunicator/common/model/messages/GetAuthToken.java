@@ -7,11 +7,13 @@ import java.util.UUID;
 public class GetAuthToken extends MessageFromWebsocket {
     private final String userName;
     private final String passwordHash;
+    private final String salt;
 
-    public GetAuthToken(UUID id, String userName, String passwordHash) {
+    public GetAuthToken(UUID id, String userName, String passwordHash, String salt) {
         super(id, MessageType.CLIENT_GET_AUTH_TOKEN);
         this.userName = userName;
         this.passwordHash = passwordHash;
+        this.salt = salt;
     }
 
     public String getUserName() {
@@ -20,5 +22,9 @@ public class GetAuthToken extends MessageFromWebsocket {
 
     public String getPasswordHash() {
         return passwordHash;
+    }
+
+    public String getSalt() {
+        return salt;
     }
 }

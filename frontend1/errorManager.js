@@ -10,8 +10,8 @@ const createError = text => {
     setTimeout(() => error.remove(), 2000);
 }
 
-const createNotification = text => {
-    const notification = Notification({ text, onclick: () => error.remove() });
+const createNotification = ({ text, iconSrc = "icons/accept.png" }) => {
+    const notification = Notification({ text, onclick: () => notification.remove(), iconSrc });
 
     const errorContainer = document.querySelector("#error-container");
     errorContainer.appendChild(notification);

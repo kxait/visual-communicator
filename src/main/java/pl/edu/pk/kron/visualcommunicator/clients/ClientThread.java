@@ -310,7 +310,7 @@ public class ClientThread implements Runnable {
     }
 
     // produces NewConversation for recipients
-    private ErrOr<CreateConversationResponse> createConversation(CreateConversation createConversation) {
+    private ErrOr<NewConversation> createConversation(CreateConversation createConversation) {
         if(user == null) return err(createConversation.getId(), "must be logged in");
 
         var conversation = dataProvider.createNewConversation(createConversation.getName(), createConversation.getRecipients(), user.id());
@@ -328,7 +328,7 @@ public class ClientThread implements Runnable {
                 })
                 .forEach(bus::pushOntoBus);
 
-        return new ErrOr<>(new CreateConversationResponse(createConversation.getId(), conversation));
+        return new ErrOr<>(new NewConversation(createConversation.getId(), conversation));
     }
 
     private <T extends MessageToWebsocket> ErrOr<T> err(UUID id, String why) {

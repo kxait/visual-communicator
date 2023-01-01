@@ -3,6 +3,7 @@ import { $$, makeRoot } from './elemMake.js';
 import Login from './Login.js';
 import MainPanel from './MainPanel.js';
 import { sendSocket, makeSocket, subscribeSocket } from './socket.js';
+import { setState } from './state.js';
 import { makeid, sha256 } from './utils.js';
 
 const isLoggedIn = () => {
@@ -19,6 +20,7 @@ const loggedIn = () => {
     const token = localStorage.getItem("authToken");
     const packet = messages.createGetAuthMessage(token);
     sendSocket(packet).then(data => {
+        setState({ userId: data.userId, username: data.name });
         const mainPanel = MainPanel();
         makeRoot([mainPanel]);
     }).catch(e => {

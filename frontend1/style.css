@@ -97,15 +97,15 @@ div {
     padding: 5px;
     border-radius: 5px;
     box-shadow: 0px 0px 5px black;
+    font-weight: bold;
 }
 
 .button {
     cursor: pointer;
-    font-weight: bold;
 }
 
 .messages {
-    height: calc(100% - 50px);
+    height: calc(100% - 50px - 5em);
 }
 
 main {
@@ -166,4 +166,26 @@ img.icon {
 
 #error-container .error img {
     vertical-align: middle;
+}
+
+#conversation-header {
+    align-items: center;
+}
+
+#conversation-header h3 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 5px 5px 0px 5px;
+}
+
+#conversation-header h3 + div {
+    margin: 5px 5px 10px 5px;
+}
+
+.conversation-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
 }

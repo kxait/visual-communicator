@@ -1,8 +1,8 @@
 import { $$ } from "./elemMake.js";
 
-const Notification = ({ text, onclick = () => {} }) => 
+const Notification = ({ text, onclick = () => {}, iconSrc }) => 
     $$("div", { className: "notification", onclick }, [
-        $$("img", { src: "icons/accept.png", alt: "success icon" }),
+        $$("img", { src: iconSrc, alt: "success icon" }),
         $$("span", { innerText: text })
     ]);
 

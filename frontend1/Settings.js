@@ -11,7 +11,7 @@ const Settings = () => {
         $$("span", { style: "font-family: monospace", innerText: userId }));
 
     const usernameElem = regeneratable(({ username = "" }) =>
-        $$("input", { value: username, placeholder: "nazwa użytkownika" }));
+        $$("input", { type: "text", maxLength: "30", value: username, placeholder: "nazwa użytkownika" }));
 
     const redo = () => sendSocket(createWhoAmIMessage())
         .then(whoAmI => {
@@ -31,7 +31,7 @@ const Settings = () => {
 
         sendSocket(createClientRenameMe(username))
             .then(data => {
-                createNotification("udalo sie zmienic nazwe");
+                createNotification({ text: "udalo sie zmienic nazwe" });
                 redo();
             });
     }
@@ -59,7 +59,7 @@ const Settings = () => {
             } else {
                 sendSocket(createClientChangeMyPassword(data.sha256SaltedOldPassword, data.salt, data.sha256NewPassword))
                     .then(data => {
-                        createNotification("udalo sie zmienic haslo");
+                        createNotification({ text: "udalo sie zmienic haslo" });
                         redo();
                     });
             }
@@ -72,7 +72,7 @@ const Settings = () => {
 
         sendSocket(createAdminCreateNewUser(username, password, false))
             .then(data => {
-                createNotification("udalo sie stworzyc uzytkownika");
+                createNotification({ text: "udalo sie stworzyc uzytkownika" });
                 redo();
             })
     }
@@ -80,7 +80,7 @@ const Settings = () => {
     const onChangeUserActivated = (userId, activated) => {
         sendSocket(createAdminChangeUserActivated(userId, activated))
             .then(_ => {
-                createNotification("udalo sie " + (activated ? "aktywowac" : "deaktywowac") + " uzytkownika")
+                createNotification({ text: "udalo sie " + (activated ? "aktywowac" : "deaktywowac") + " uzytkownika" })
                 redo();
             });
     }
@@ -90,7 +90,7 @@ const Settings = () => {
         sha256(newPassword).then(newPasswordHashed => 
             sendSocket(createAdminChangeUserPassword(userId, newPasswordHashed))
                 .then(_ => {
-                    createNotification("udalo sie zmienic haslo uzytkownika")
+                    createNotification({ text: "udalo sie zmienic haslo uzytkownika" })
                     redo();
                 }));
     }
@@ -99,7 +99,7 @@ const Settings = () => {
         const newName = prompt("nowa nazwa?");
         sendSocket(createAdminRenameUser(userId, newName))
             .then(_ => {
-                createNotification("udalo sie zmienic nazwe uzytkownika")
+                createNotification({ text: "udalo sie zmienic nazwe uzytkownika" })
                 redo();
             });
     }

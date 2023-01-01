@@ -26,9 +26,22 @@ const regeneratable = (dataGenerator, argsTld = {}) => {
     return data;
 }
 
+const asyncRegeneratable = async (dataGenerator, argsTld = {}) => {
+    let data = {
+        elem: await dataGenerator(argsTld),
+        regenerate: async (args = {}) => {
+            const x = await dataGenerator(args);
+            data.elem.replaceWith(x);
+            data.elem = x;
+        }
+    }
+    return data;
+}
+
 export { 
     makeRoot,
     makeElem, 
     $$,
-    regeneratable
+    regeneratable,
+    asyncRegeneratable
 }

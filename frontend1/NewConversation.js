@@ -1,8 +1,9 @@
 import { createCreateConversationMessage, createGetAvailableMessageRecipientsMessage, createGetUsersByIdOrPartOfName, createWhoAmIMessage } from "./createMessages.js";
 import { $$, regeneratable } from "./elemMake.js"
+import { MainPanelState, setMainPanelState } from "./mainPanelState.js";
 import { sendSocket } from "./socket.js";
 
-const NewConversation = ({ onCreated }) => {
+const NewConversation = () => {
     let recipients = [];
     let availableRecipientUsers = [];
     let searchedRecipients = [];
@@ -62,6 +63,7 @@ const NewConversation = ({ onCreated }) => {
     const conversationNameInput = regeneratable(({ conversationName = "", disabled = false}) => {
         return $$("input", { 
             type: "text", 
+            maxLength: "30",
             placeholder: "nazwa konwersacji", 
             value: conversationName, 
             disabled, 
@@ -91,6 +93,11 @@ const NewConversation = ({ onCreated }) => {
                     .filter(r => recipients.findIndex(rr => rr.id == r.id) == -1);
                 searchedRecipientsElem.regenerate({ recipients: searchedRecipients });
             })
+    }
+
+    const onCreated = data => {
+        setMainPanelState({ mainPanelState: MainPanelState.welcomeScreen });
+        //setMainPanelState({ mainPanelState: MainPanelState.conversation, additionalData: { conversationId: data.conversation.id } })
     }
 
     const createConversation = () => {

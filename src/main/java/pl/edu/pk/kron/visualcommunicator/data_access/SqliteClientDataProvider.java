@@ -17,19 +17,23 @@ import java.util.function.Function;
 
 public class SqliteClientDataProvider implements ClientDataProvider {
     private final String connectionString;
+    private final Object lock;
 
     public SqliteClientDataProvider(String connectionString) {
         this.connectionString = connectionString;
+        lock = 1;
     }
 
-    private <T> T withConnection(Function<Connection, T> func) {
-        try {
-            var connection = getConnection();
-            var result = func.apply(connection);
-            connection.close();
-            return result;
-        }catch(SQLException e) {
-            return null;
+    private synchronized <T> T withConnection(Function<Connection, T> func) {
+        synchronized(lock) {
+            try {
+                var connection = getConnection();
+                var result = func.apply(connection);
+                connection.close();
+                return result;
+            } catch (SQLException e) {
+                return null;
+            }
         }
     }
 

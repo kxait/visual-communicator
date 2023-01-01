@@ -6,14 +6,18 @@ import { createError } from './errorManager.js';
 const { publish, subscribe } = createPubsub();
 
 const makeSocket = url => new Promise((res, rej) => {    
-    setState({ socket: new WebSocket(url) })
+    setState({ socket: new WebSocket(url), wasOpen: false })
     const s = state();
     s.socket.addEventListener('open', e => {
         console.debug('socket open');
+        setState({ wasOpen: true });
         res();
     });
     s.socket.addEventListener('close', e => {
         console.debug('socket closed');
+        if(state().wasOpen)
+            // reload page in case we got logged out
+            location.reload();
         rej();
     });
     s.socket.addEventListener('message', e => {

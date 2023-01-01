@@ -31,13 +31,13 @@ const MainPanel = () => {
     const messages = regeneratable(({ conversationId, mainPanelState = MainPanelState.welcomeScreen }) => 
         mainPanelState == MainPanelState.newConversation
             ? NewConversation({ onCreated: onCreateConversation })
-            : mainPanelState == MainPanelState.welcomeScreen || mainPanelState == MainPanelState.conversation
+            : false && (mainPanelState == MainPanelState.welcomeScreen || mainPanelState == MainPanelState.conversation)
                 ? Messages({ 
                     conversationId, 
                     onSubscribe: fun => unsubscribe = fun,
                     onSendMessage: sendMessage
                 })
-                : mainPanelState == MainPanelState.settings
+                : true || mainPanelState == MainPanelState.settings
                     ? Settings()
                     : null);
 

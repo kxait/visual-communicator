@@ -1,5 +1,5 @@
 import * as messages from './createMessages.js'
-import { makeRoot } from './elemMake.js';
+import { $$, makeRoot } from './elemMake.js';
 import Login from './Login.js';
 import MainPanel from './MainPanel.js';
 import { sendSocket, makeSocket, subscribeSocket } from './socket.js';
@@ -30,6 +30,18 @@ const loggedIn = () => {
     })
 }
 
+const connecting = () => {
+    makeRoot([
+        $$("h1", { innerText: "łączenie... "})
+    ]);
+}
+
+const couldNotConnect = () => {
+    makeRoot([
+        $$("h1", { innerText: "nie udało się połączyć :(" })
+    ]);
+}
+
 const login = async () => {
     const $ = data => document.querySelector(data);
     const username = $("#input-username").value;
@@ -57,7 +69,13 @@ const handleLogin = result => {
 }
 
 const main = async () => {
-    await makeSocket('ws://localhost:8887');
+    connecting();
+    try {
+        await makeSocket('ws://localhost:8887');
+    } catch(e) {
+        couldNotConnect();
+        return;
+    }
 
     if(isLoggedIn()) {
         loggedIn();

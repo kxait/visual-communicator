@@ -1,9 +1,10 @@
-import { createAdminCreateNewUser, createAdminGetAllUsers, createClientChangeMyPassword, createClientRenameMe, createWhoAmIMessage } from "./createMessages.js";
+import { createAdminChangeUserActivated, createAdminChangeUserPassword, createAdminCreateNewUser, createAdminGetAllUsers, createAdminRenameUser, createClientChangeMyPassword, createClientRenameMe, createWhoAmIMessage } from "./createMessages.js";
 import { $$, regeneratable } from "./elemMake.js"
 import { sendSocket } from "./socket.js";
 import Icon from "./Icon.js";
 import { createError, createNotification } from "./errorManager.js";
 import { makeid, sha256 } from "./utils.js";
+import ClickableIcon from "./ClickableIcon.js";
 
 const Settings = () => {
     const userIdElem = regeneratable(({ userId = "" }) => 
@@ -56,7 +57,6 @@ const Settings = () => {
             if(!success) {
                 createError("hasla musza byc takie same")
             } else {
-                console.log(data);
                 sendSocket(createClientChangeMyPassword(data.sha256SaltedOldPassword, data.salt, data.sha256NewPassword))
                     .then(data => {
                         createNotification("udalo sie zmienic haslo");
@@ -77,15 +77,60 @@ const Settings = () => {
             })
     }
 
+    const onChangeUserActivated = (userId, activated) => {
+        sendSocket(createAdminChangeUserActivated(userId, activated))
+            .then(_ => {
+                createNotification("udalo sie " + (activated ? "aktywowac" : "deaktywowac") + " uzytkownika")
+                redo();
+            });
+    }
+
+    const onUserChangePassword = userId => {
+        const newPassword = prompt("nowe haslo?");
+        sha256(newPassword).then(newPasswordHashed => 
+            sendSocket(createAdminChangeUserPassword(userId, newPasswordHashed))
+                .then(_ => {
+                    createNotification("udalo sie zmienic haslo uzytkownika")
+                    redo();
+                }));
+    }
+
+    const onChangeUserName = userId => {
+        const newName = prompt("nowa nazwa?");
+        sendSocket(createAdminRenameUser(userId, newName))
+            .then(_ => {
+                createNotification("udalo sie zmienic nazwe uzytkownika")
+                redo();
+            });
+    }
+
     const allUsers = regeneratable(({ users = [] }) => {
         const getUserIcon = isAdmin => isAdmin
-            ? Icon({ path: "icons/shield.png" })
-            : Icon({ path: "icons/user.png" });
+            ? Icon({ path: "icons/shield.png", title: "admin" })
+            : Icon({ path: "icons/user.png", title: "zwykly uzytkownik" });
+
+        const getActivateDeactivateIconAction = (userId, activated) => ClickableIcon({ 
+                path: activated ? "icons/cog_delete.png" : "icons/cog_add.png",
+                title: activated ? "dezaktywuj" : "aktywuj",
+                onclick: () => onChangeUserActivated(userId, !activated)
+            });
 
         return $$("div", {}, 
             users.map(user => $$("div", {}, [
+                ClickableIcon({ 
+                    path: "icons/key.png", 
+                    title: "zmien haslo" ,
+                    onclick: () => onUserChangePassword(user.id)
+                }),
+                ClickableIcon({ 
+                    path: "icons/user_edit.png", 
+                    title: "zmien nazwe",
+                    onclick: () => onChangeUserName(user.id)
+                }),
+                getActivateDeactivateIconAction(user.id, user.activated),
+                $$("span", { innerHTML: "&nbsp;", style: "margin-right: 5px" }),
                 getUserIcon(user.isAdmin),
-                $$("span", { innerText: user.name })
+                $$("span", { innerText: user.name, style: user.activated ? null : "text-decoration: line-through" })
             ])));
     })
 
@@ -95,10 +140,6 @@ const Settings = () => {
                 $$("div", {}, [
                     Icon({ path: "icons/accept.png" }),
                     $$("span", { innerText: "jestes administratorem!"})
-                ]),
-                $$("fieldset", {}, [
-                    $$("legend", { innerText: "wszyscy użytkownicy"}),
-                    allUsers.elem
                 ]),
                 $$("fieldset", {}, [
                     $$("legend", { innerText: "ustawienia administratora" }),
@@ -113,7 +154,11 @@ const Settings = () => {
                             $$("span", { innerText: "stwórz" })
                         ])
                     ])
-                ])
+                ]),
+                $$("fieldset", {}, [
+                    $$("legend", { innerText: "wszyscy użytkownicy"}),
+                    allUsers.elem
+                ])                
             ])
             : $$("span");
     });

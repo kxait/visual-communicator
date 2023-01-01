@@ -99,6 +99,11 @@ public class VisualCommunicatorWebsocketServer extends WebSocketServer {
                 .findFirst()
                 .get();
 
+        if(content.equals("disconnect")) {
+            connection.close();
+            return;
+        }
+
         var encoded = content;//Base64.getEncoder().encodeToString(content.getBytes());
 
         connection.send(encoded);

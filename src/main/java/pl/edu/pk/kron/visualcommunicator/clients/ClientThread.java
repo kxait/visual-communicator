@@ -6,6 +6,8 @@ import pl.edu.pk.kron.visualcommunicator.common.infrastructure.BusMessage;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.BusMessageType;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.MessageBus;
 import pl.edu.pk.kron.visualcommunicator.common.model.MessageType;
+import pl.edu.pk.kron.visualcommunicator.common.model.ThreadOrchestratorMessage;
+import pl.edu.pk.kron.visualcommunicator.common.model.ThreadOrchestratorMessageType;
 import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.*;
 import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.Error;
 import pl.edu.pk.kron.visualcommunicator.common.model.messages.*;
@@ -69,6 +71,13 @@ public class ClientThread implements Runnable {
                 continue;
             }
 
+            if(user != null) {
+                user = dataProvider.getUserById(user.id());
+                if(!user.activated())
+                    break;
+            }
+
+
             var m = message.jsonContent();
             var abstractMessage = gson.fromJson(m, MessageFromWebsocket.class);
             var messageType = abstractMessage.getType();
@@ -116,6 +125,14 @@ public class ClientThread implements Runnable {
             return err(adminChangeUserActivated.getId(), "must be admin");
 
         dataProvider.changeUserActivated(adminChangeUserActivated.getUserId(), adminChangeUserActivated.isActivated());
+
+        var isLoggedIn = userRegistry.isUserIdLoggedIn(adminChangeUserActivated.getUserId());
+        if(isLoggedIn) {
+            var clientId = userRegistry.getClientIdByUserId(adminChangeUserActivated.getUserId());
+            var killSocketMessage = new BusMessage("disconnect", BusMessageType.MESSAGE_TO_WEBSOCKET, clientId);
+            bus.pushOntoBus(killSocketMessage);
+        }
+
         return new ErrOr<>(new GenericSuccessResponse(MessageType.CLIENT_ADMIN_CHANGE_USER_ACTIVATED, adminChangeUserActivated.getId(), true));
     }
 
@@ -136,8 +153,6 @@ public class ClientThread implements Runnable {
             return err(changeMyPassword.getId(), "wrong current password");
 
         dataProvider.changeUserPassword(user.id(), changeMyPassword.getNewPasswordHash());
-
-        user = dataProvider.getUserById(user.id());
 
         return new ErrOr<>(new GenericSuccessResponse(MessageType.CLIENT_CHANGE_MY_PASSWORD, changeMyPassword.getId(), true));
     }
@@ -166,8 +181,6 @@ public class ClientThread implements Runnable {
             return err(renameMe.getId(), "user with this name already exists");
 
         dataProvider.renameUser(user.id(), newName);
-
-        user = dataProvider.getUserById(user.id());
 
         return new ErrOr<>(new GenericSuccessResponse(MessageType.CLIENT_RENAME_ME, renameMe.getId(), true));
     }
@@ -237,7 +250,7 @@ public class ClientThread implements Runnable {
 
     private ErrOr<GetAuthResponse> getAuth(GetAuth getAuth) {
         var user = dataProvider.getAuthByToken(getAuth.getToken());
-        if(user != null && this.user == null) {
+        if(user != null && this.user == null && user.activated()) {
             this.user = user;
             userRegistry.newUserAuthenticated(clientId, user.id());
             return new ErrOr<>(new GetAuthResponse(getAuth.getId(), user.id(), user.name()));
@@ -250,7 +263,7 @@ public class ClientThread implements Runnable {
 
         var dbPasswordHashedWithSalt = Hasher.sha256(user.passwordHash() + getAuthToken.getSalt());
 
-        if(user != null && this.user == null && dbPasswordHashedWithSalt.equals(getAuthToken.getPasswordHash())) {
+        if(this.user == null && dbPasswordHashedWithSalt.equals(getAuthToken.getPasswordHash()) && user.activated()) {
             this.user = user;
             userRegistry.newUserAuthenticated(clientId, user.id());
             var token = dataProvider.getAuthTokenForUser(user.id());
@@ -318,7 +331,7 @@ public class ClientThread implements Runnable {
         return new ErrOr<>(new CreateConversationResponse(createConversation.getId(), conversation));
     }
 
-    private <T extends MessageToWebsocket> ErrOr err(UUID id, String why) {
+    private <T extends MessageToWebsocket> ErrOr<T> err(UUID id, String why) {
         return new ErrOr<T>(new Err(id, new Error(true, why)));
     }
 }

@@ -122,6 +122,17 @@ const createAdminChangeUserPassword = (userId, newPasswordHash) => JSON.stringif
     newPasswordHash
 });
 
+const createClientGetProfileData = () => JSON.stringify({
+    type: messageTypes.clientGetProfileData,
+    id: uuidv4()
+});
+
+const createClientSetProfileData = profileData => JSON.stringify({
+    type: messageTypes.clientSetProfileData,
+    id: uuidv4(),
+    profileData
+});
+
 export {
     createCreateConversationMessage,
     createGetAuthMessage,
@@ -139,5 +150,7 @@ export {
     createClientChangeMyPassword,
     createAdminRenameUser,
     createAdminChangeUserActivated,
-    createAdminChangeUserPassword
+    createAdminChangeUserPassword,
+    createClientGetProfileData,
+    createClientSetProfileData
 }

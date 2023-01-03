@@ -17,6 +17,9 @@ public interface ClientDataProvider {
     User createNewUser(String name, String password, boolean isAdmin);
     List<User> getAllUsers();
 
+    void setProfileData(UUID userId, String profileData);
+    String getProfileData(UUID userId);
+
     User getUserByName(String name);
 
     void renameUser(UUID id, String newName);

@@ -67,6 +67,9 @@ public class ClientThread implements Runnable {
                 } catch (InterruptedException ignored) {
                     // killed by orchestrator
                     break;
+                } catch(Exception e) {
+                    e.printStackTrace();
+                    break;
                 }
                 continue;
             }
@@ -81,35 +84,42 @@ public class ClientThread implements Runnable {
             var m = message.jsonContent();
             var abstractMessage = gson.fromJson(m, MessageFromWebsocket.class);
             var messageType = abstractMessage.getType();
-            var response = switch(messageType) {
-                case CLIENT_GET_AUTH -> getAuth(gson.fromJson(m, GetAuth.class));
-                case CLIENT_GET_AUTH_TOKEN -> getAuthToken(gson.fromJson(m, GetAuthToken.class));
-                case CLIENT_GET_CONVERSATIONS -> getConversations(gson.fromJson(m, GetConversations.class));
-                case CLIENT_GET_MESSAGES -> getMessages(gson.fromJson(m, GetMessages.class));
-                case CLIENT_SEND_MESSAGE -> sendMessageToConversation(gson.fromJson(m, SendMessageToConversation.class));
-                case CLIENT_CREATE_NEW_CONVERSATION -> createConversation(gson.fromJson(m, CreateConversation.class));
-                case CLIENT_WHO_AM_I -> whoAmI(gson.fromJson(m, WhoAmI.class));
-                case CLIENT_GET_USERNAME_OF_USERID -> getUsernameOfUserId(gson.fromJson(m, GetUsernameOfUserId.class));
-                case CLIENT_GET_AVAILABLE_MESSAGE_RECIPIENTS -> getAvailableMessageRecipients(gson.fromJson(m, GetAvailableMessageRecipients.class));
-                case CLIENT_GET_USERS_BY_ID_OR_PART_OF_NAME -> getUsersByIdOrPartOfName(gson.fromJson(m, GetUsersByIdOrPartOfName.class));
-                case CLIENT_ADMIN_CREATE_NEW_USER -> adminCreateNewUser(gson.fromJson(m, AdminCreateNewUser.class));
-                case CLIENT_ADMIN_GET_ALL_USERS -> getAllUsers(gson.fromJson(m, AdminGetAllUsers.class));
-                case CLIENT_RENAME_ME -> renameMe(gson.fromJson(m, RenameMe.class));
-                case CLIENT_ADMIN_RENAME_USER -> adminRenameUser(gson.fromJson(m, AdminRenameUser.class));
-                case CLIENT_CHANGE_MY_PASSWORD -> changeMyPassword(gson.fromJson(m, ChangeMyPassword.class));
-                case CLIENT_ADMIN_CHANGE_USERS_PASSWORD -> adminChangeUserPassword(gson.fromJson(m, AdminChangeUserPassword.class));
-                case CLIENT_ADMIN_CHANGE_USER_ACTIVATED -> adminChangeUserActivated(gson.fromJson(m, AdminChangeUserActivated.class));
-                default -> null;
-            };
 
             MessageToWebsocket concreteResponse = null;
 
-            if(response == null) {
-                concreteResponse = new Err(abstractMessage.getId(), new Error(true, ":)"));
-            } else if(response.isError()) {
-                concreteResponse = response.getErr();
-            } else{
-                concreteResponse = response.getValue();
+            try {
+                var response = switch (messageType) {
+                    case CLIENT_GET_AUTH -> getAuth(gson.fromJson(m, GetAuth.class));
+                    case CLIENT_GET_AUTH_TOKEN -> getAuthToken(gson.fromJson(m, GetAuthToken.class));
+                    case CLIENT_GET_CONVERSATIONS -> getConversations(gson.fromJson(m, GetConversations.class));
+                    case CLIENT_GET_MESSAGES -> getMessages(gson.fromJson(m, GetMessages.class));
+                    case CLIENT_SEND_MESSAGE -> sendMessageToConversation(gson.fromJson(m, SendMessageToConversation.class));
+                    case CLIENT_CREATE_NEW_CONVERSATION -> createConversation(gson.fromJson(m, CreateConversation.class));
+                    case CLIENT_WHO_AM_I -> whoAmI(gson.fromJson(m, WhoAmI.class));
+                    case CLIENT_GET_USERNAME_OF_USERID -> getUsernameOfUserId(gson.fromJson(m, GetUsernameOfUserId.class));
+                    case CLIENT_GET_AVAILABLE_MESSAGE_RECIPIENTS -> getAvailableMessageRecipients(gson.fromJson(m, GetAvailableMessageRecipients.class));
+                    case CLIENT_GET_USERS_BY_ID_OR_PART_OF_NAME -> getUsersByIdOrPartOfName(gson.fromJson(m, GetUsersByIdOrPartOfName.class));
+                    case CLIENT_ADMIN_CREATE_NEW_USER -> adminCreateNewUser(gson.fromJson(m, AdminCreateNewUser.class));
+                    case CLIENT_ADMIN_GET_ALL_USERS -> getAllUsers(gson.fromJson(m, AdminGetAllUsers.class));
+                    case CLIENT_RENAME_ME -> renameMe(gson.fromJson(m, RenameMe.class));
+                    case CLIENT_ADMIN_RENAME_USER -> adminRenameUser(gson.fromJson(m, AdminRenameUser.class));
+                    case CLIENT_CHANGE_MY_PASSWORD -> changeMyPassword(gson.fromJson(m, ChangeMyPassword.class));
+                    case CLIENT_ADMIN_CHANGE_USERS_PASSWORD -> adminChangeUserPassword(gson.fromJson(m, AdminChangeUserPassword.class));
+                    case CLIENT_ADMIN_CHANGE_USER_ACTIVATED -> adminChangeUserActivated(gson.fromJson(m, AdminChangeUserActivated.class));
+                    case CLIENT_GET_PROFILE_DATA -> getProfileData(gson.fromJson(m, GetProfileData.class));
+                    case CLIENT_SET_PROFILE_DATA -> setProfileData(gson.fromJson(m, SetProfileData.class));
+                    default -> null;
+                };
+
+                if (response == null) {
+                    concreteResponse = new Err(abstractMessage.getId(), new Error(true, ":)"));
+                } else if (response.isError()) {
+                    concreteResponse = response.getErr();
+                } else {
+                    concreteResponse = response.getValue();
+                }
+            }catch(Exception e) {
+                e.printStackTrace();
             }
 
             var busMessage = new BusMessage(gson.toJson(concreteResponse), BusMessageType.MESSAGE_TO_WEBSOCKET, clientId);
@@ -118,6 +128,24 @@ public class ClientThread implements Runnable {
         System.out.println("client thread for " + clientId + " killed");
         if(user != null)
             userRegistry.userLeft(user.id());
+    }
+
+    private ErrOr<GetProfileDataResponse> getProfileData(GetProfileData getProfileData) {
+        if(user == null)
+            return err(getProfileData.getId(), "must be logged in");
+
+        var profileData = dataProvider.getUserProfileData(user.id());
+
+        return new ErrOr<>(new GetProfileDataResponse(getProfileData.getId(), profileData));
+    }
+
+    private ErrOr<GenericSuccessResponse> setProfileData(SetProfileData setProfileData) {
+        if(user == null)
+            return err(setProfileData.getId(), "must be logged in");
+
+        dataProvider.setUserProfileData(user.id(), setProfileData.getProfileData());
+
+        return new ErrOr<>(new GenericSuccessResponse(MessageType.CLIENT_SET_PROFILE_DATA, setProfileData.getId(), true));
     }
 
     private ErrOr<GenericSuccessResponse> adminChangeUserActivated(AdminChangeUserActivated adminChangeUserActivated) {
@@ -251,6 +279,9 @@ public class ClientThread implements Runnable {
     private ErrOr<GetAuthResponse> getAuth(GetAuth getAuth) {
         var user = dataProvider.getAuthByToken(getAuth.getToken());
         if(user != null && this.user == null && user.activated()) {
+            if(userRegistry.isUserIdLoggedIn(user.id()))
+                return err(getAuth.getId(), "already logged in");
+
             this.user = user;
             userRegistry.newUserAuthenticated(clientId, user.id());
             return new ErrOr<>(new GetAuthResponse(getAuth.getId(), user.id(), user.name()));
@@ -264,6 +295,9 @@ public class ClientThread implements Runnable {
         var dbPasswordHashedWithSalt = Hasher.sha256(user.passwordHash() + getAuthToken.getSalt());
 
         if(this.user == null && dbPasswordHashedWithSalt.equals(getAuthToken.getPasswordHash()) && user.activated()) {
+            if(userRegistry.isUserIdLoggedIn(user.id()))
+                return err(getAuthToken.getId(), "already logged in");
+
             this.user = user;
             userRegistry.newUserAuthenticated(clientId, user.id());
             var token = dataProvider.getAuthTokenForUser(user.id());

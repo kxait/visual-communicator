@@ -40,7 +40,8 @@ public class ClientDataProviderAdapter {
                 dalUser.name(),
                 dalUser.passwordHash(),
                 dalUser.isAdmin(),
-                dalUser.activated());
+                dalUser.activated(),
+                dalUser.profileData());
     }
 
     public Conversation getConversationById(UUID id, UUID sender) {
@@ -166,4 +167,8 @@ public class ClientDataProviderAdapter {
     public void changeUserActivated(UUID id, boolean activated) {
         provider.setUserActivated(id, activated);
     }
+
+    public String getUserProfileData(UUID userId) { return provider.getProfileData(userId); }
+
+    public void setUserProfileData(UUID userId, String data) { provider.setProfileData(userId, data); }
 }

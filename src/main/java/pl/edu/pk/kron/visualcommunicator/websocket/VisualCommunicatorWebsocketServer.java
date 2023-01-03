@@ -13,7 +13,6 @@ import java.util.*;
 class Client {
     private final UUID id;
     private final InetSocketAddress address;
-    private boolean isAuthenticated = false;
 
     public Client(InetSocketAddress address) {
         this.address = address;
@@ -27,19 +26,11 @@ class Client {
     public InetSocketAddress getAddress() {
         return address;
     }
-
-    public boolean isAuthenticated() {
-        return isAuthenticated;
-    }
-
-    public void setAuthenticated(boolean authenticated) {
-        isAuthenticated = authenticated;
-    }
 }
 
 public class VisualCommunicatorWebsocketServer extends WebSocketServer {
-    private Dictionary<UUID, Client> clientByClientId;
-    private Dictionary<InetSocketAddress, Client> clientBySocketAddress;
+    private final Dictionary<UUID, Client> clientByClientId;
+    private final Dictionary<InetSocketAddress, Client> clientBySocketAddress;
     private final MessageBus bus;
 
     public VisualCommunicatorWebsocketServer(int port, MessageBus bus) {
@@ -71,11 +62,10 @@ public class VisualCommunicatorWebsocketServer extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket webSocket, String s) {
-        var decoded = s;//new String(Base64.getDecoder().decode(s));
-        System.out.println("websocket message received: addr=" + webSocket.getRemoteSocketAddress() + ", decoded=" + decoded + ", s=" + s);
+        System.out.println("websocket message received: addr=" + webSocket.getRemoteSocketAddress() + ", decoded=" + s + ", s=" + s);
         var client = clientBySocketAddress.get(webSocket.getRemoteSocketAddress());
         var id = client.getId();
-        var busMessage = new BusMessage(decoded, BusMessageType.MESSAGE_TO_CLIENT_THREAD, id);
+        var busMessage = new BusMessage(s, BusMessageType.MESSAGE_TO_CLIENT_THREAD, id);
         bus.pushOntoBus(busMessage);
     }
 
@@ -104,8 +94,6 @@ public class VisualCommunicatorWebsocketServer extends WebSocketServer {
             return;
         }
 
-        var encoded = content;//Base64.getEncoder().encodeToString(content.getBytes());
-
-        connection.send(encoded);
+        connection.send(content);
     }
 }

@@ -6,6 +6,8 @@ import { userNameById } from "./userNameById.js";
 import { createNotification } from "./errorManager.js";
 import { setState } from "./state.js";
 import { setMainPanelState, MainPanelState } from "./mainPanelState.js";
+import { patchProfileData, profileData, setProfileData } from "./profileData.js";
+import { until } from "./utils.js";
 
 const conversationsThatHaveNewMessagesLsKey = "conversationsThatHaveNewMessages";
 
@@ -32,8 +34,7 @@ const Conversation = ({ name, isMultipleRecipients, hasNewMessages, onConversati
     ]);
 }
 
-const ConversationsPanel = () => {
-
+const conversationsPanelOnLoadedProfileData = profileData => {
     const onConversationChange = c => { 
         setMainPanelState({ mainPanelState: MainPanelState.conversation, additionalData: { conversationId: c.id }})
     };
@@ -42,7 +43,9 @@ const ConversationsPanel = () => {
         setMainPanelState({ mainPanelState: MainPanelState.newConversation, additionalData: { newConversation: true } })
     }
 
-    let conversationsThatHaveNewMessages = JSON.parse(localStorage.getItem(conversationsThatHaveNewMessagesLsKey)) ?? [];
+    console.log(profileData);
+
+    let conversationsThatHaveNewMessages = profileData.conversationsThatHaveNewMessages ?? [];
 
     let currentConversationId = null;
     const onConversationSelected = c => {
@@ -50,7 +53,8 @@ const ConversationsPanel = () => {
 
         conversationsThatHaveNewMessages = conversationsThatHaveNewMessages
             .filter(conversationId => conversationId !== c.id);
-        localStorage.setItem(conversationsThatHaveNewMessagesLsKey, JSON.stringify(conversationsThatHaveNewMessages));
+
+        patchProfileData({ "conversationsThatHaveNewMessages": conversationsThatHaveNewMessages });
 
         onConversationChange(c);
         regenerateConversations();
@@ -60,7 +64,8 @@ const ConversationsPanel = () => {
         if(conversationId === currentConversationId)
             return;
         conversationsThatHaveNewMessages.push(conversationId);
-        localStorage.setItem(conversationsThatHaveNewMessagesLsKey, JSON.stringify(conversationsThatHaveNewMessages));
+
+        patchProfileData({ "conversationsThatHaveNewMessages": conversationsThatHaveNewMessages });
     }
 
     const onNewMessageCreateNotification = async (conversationId, authorId, content) => {
@@ -148,6 +153,11 @@ const ConversationsPanel = () => {
     })
 
     return conversations.elem;
+}
+
+const ConversationsPanel = () => {
+    const result = until(profileData(), () => $$("span", { innerText: "..." }), conversationsPanelOnLoadedProfileData);
+    return $$("div", {}, [ result.elem ]);
 }
 
 export default ConversationsPanel;

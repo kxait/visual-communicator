@@ -2,26 +2,18 @@ import ConversationsPanel from "./ConversationsPanel.js";
 import { $$, regeneratable } from "./elemMake.js";
 import Username from "./Username.js";
 import Messages from "./Messages.js";
-import { sendSocket } from "./socket.js";
-import { createSendMessageToConversationMessage } from "./createMessages.js";
 import NewConversation from "./NewConversation.js";
 import Settings from "./Settings.js";
 import { MainPanelState, subscribeMainPanelState, setMainPanelState } from "./mainPanelState.js";
-import { Message } from "./Message.js";
+import UserProfile from "./UserProfile.js";
+import ConversationProfile from "./ConversationProfile.js";
 
 const MainPanel = () => {
     let unsubscribe = () => {};
-    let currentConversationId = null;
-
-    const sendMessage = text => {
-        sendSocket(createSendMessageToConversationMessage(currentConversationId, text))
-    }
-
-    const onCreateConversation = data => {
-        setMainPanelState({ mainPanelState: MainPanelState.welcomeScreen });
-    }
 
     const mainPanel = regeneratable(({ mainPanelState = MainPanelState.welcomeScreen, additionalData = {} }) => {
+        console.log({ mainPanelState, additionalData });
+
         unsubscribe();
         
         if(mainPanelState === MainPanelState.welcomeScreen)
@@ -33,36 +25,25 @@ const MainPanel = () => {
         if(mainPanelState === MainPanelState.conversation)
             return Messages({
                 conversationId: additionalData.conversationId,
-                onSubscribe: fun => unsubscribe = fun,
-                onSendMessage: sendMessage
+                onSubscribe: fun => unsubscribe = fun
             });
 
         if(mainPanelState === MainPanelState.newConversation)
-            return NewConversation({ onCreated: onCreateConversation });
+            return NewConversation();
 
         if(mainPanelState === MainPanelState.settings)
             return Settings();
 
         if(mainPanelState === MainPanelState.userProfile)
-            ;
+            return UserProfile({ userId: additionalData.userId });
 
         if(mainPanelState === MainPanelState.conversationProfile)
-            ;
+            return ConversationProfile({ conversationId: additionalData.conversationId });
         
         return $$("div", { innerText: "oops" });
     });
 
     subscribeMainPanelState(({ mainPanelState, additionalData }) => mainPanel.regenerate({ mainPanelState, additionalData }));
-
-    const onConversationChange = c => { 
-        unsubscribe(); 
-        setMainPanelState({ mainPanelState: MainPanelState.conversation, additionalData: { conversationId: c.id }})
-        currentConversationId = c.id;
-    };
-
-    const onNewConversation = () => {
-        setMainPanelState({ mainPanelState: MainPanelState.newConversation, additionalData: { newConversation: true } })
-    }
 
     const logout = () => {
         localStorage.removeItem('authToken');
@@ -92,7 +73,7 @@ const MainPanel = () => {
         ]),
         $$("div", { id: "main-panel-left-right" }, [
             $$("div", {id: "main-panel-left", className: "main-panel-pane cool-border"}, [
-                ConversationsPanel({ onConversationChange, onNewConversation })
+                ConversationsPanel()
             ]),
             $$("div", { style: "overflow-y: scroll", id: "main-panel-right", className: "main-panel-pane cool-border"}, [
                 mainPanel.elem

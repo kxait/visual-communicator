@@ -16,6 +16,8 @@ const messageTypes = {
     clientAdminRenameUser: "CLIENT_ADMIN_RENAME_USER",
     clientAdminChangeUsersPassword: "CLIENT_ADMIN_CHANGE_USERS_PASSWORD",
     clientAdminChangeUserActivated: "CLIENT_ADMIN_CHANGE_USER_ACTIVATED",
+    clientGetProfileData: 'CLIENT_GET_PROFILE_DATA',
+    clientSetProfileData: 'CLIENT_SET_PROFILE_DATA',
 
     serverPing: "SERVER_PING",
     serverNewMessage: "SERVER_NEW_MESSAGE",

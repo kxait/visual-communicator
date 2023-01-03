@@ -1,3 +1,5 @@
+import { $$, regeneratable } from "./elemMake.js";
+
 function makeid(length) {
     var result           = '';
     var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -23,7 +25,31 @@ async function sha256(message) {
     return hashHex;
 }
 
+function later(promise, fun = data => $$("span", { innerText: data })) {
+    const obj = regeneratable(fun);
+
+    promise.then(data => {
+        obj.regenerate(data)
+    })
+
+    return obj;
+}
+
+function until(promise, funPlaceholder = data => $$("span", { innerText: "..." }), funLoaded = data => $$("span", { innerText: data })) {
+    let loaded = false;
+    const obj = regeneratable(data => loaded ? funLoaded(data) : funPlaceholder(data));
+
+    promise.then(data => {
+        loaded = true;
+        obj.regenerate(data);
+    });
+
+    return obj;
+}
+
 export {
+    later,
+    until,
     makeid,
     sha256
 }

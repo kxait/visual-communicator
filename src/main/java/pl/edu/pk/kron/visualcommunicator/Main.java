@@ -27,6 +27,8 @@ public class Main {
         migrationManager.addMigration("admin_user", new AdminUserMigration());
         migrationManager.addMigration("hash_passwords", new HashPasswordsMigration());
         migrationManager.addMigration("user_activated", new CreateIsUserActivatedMigration());
+        migrationManager.addMigration("profile_data", new UserProfileDataMigration());
+        migrationManager.addMigration("blank_json_profile_data", new BlankJsonUserProfileMigration());
 
         var e = migrationManager.performMigrations();
         if(e != null) {

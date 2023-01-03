@@ -7,6 +7,7 @@ import pl.edu.pk.kron.visualcommunicator.data_access.models.User;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -35,6 +36,17 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                 return null;
             }
         }
+    }
+
+    private User getUser(ResultSet rs) throws SQLException {
+        var id = UUID.fromString(rs.getString("id"));
+        var name = rs.getString("name");
+        var passwordHash = rs.getString("passwordHash");
+        var isAdmin = rs.getBoolean("isAdmin");
+        var activated = rs.getBoolean("activated");
+        var profileData = rs.getString("profileData");
+
+        return new User(id, name, passwordHash, isAdmin, activated, profileData);
     }
 
     private Connection getConnection() throws SQLException {
@@ -116,12 +128,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                 if(!rs.next())
                     return null;
 
-                var name = rs.getString("name");
-                var passwordHash = rs.getString("passwordHash");
-                var isAdmin = rs.getBoolean("isAdmin");
-                var activated = rs.getBoolean("activated");
-
-                return new User(id, name, passwordHash, isAdmin, activated);
+                return getUser(rs);
             }catch(SQLException e) {
                 e.printStackTrace();
                 return null;
@@ -255,13 +262,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                 var rs = stmt.executeQuery();
                 var users = new LinkedList<User>();
                 while(rs.next()) {
-                    var userId = UUID.fromString(rs.getString("id"));
-                    var userName = rs.getString("name");
-                    var passwordHash = rs.getString("passwordHash");
-                    var isAdmin = rs.getBoolean("isAdmin");
-                    var activated = rs.getBoolean("activated");
-
-                    var user = new User(userId, userName, passwordHash, isAdmin, activated);
+                    var user = getUser(rs);
                     users.add(user);
                 }
 
@@ -278,8 +279,8 @@ public class SqliteClientDataProvider implements ClientDataProvider {
         return withConnection(connection -> {
             try {
                 var id = UUID.randomUUID();
-                var stmt = connection.prepareStatement("INSERT INTO user (id, name, passwordHash, isAdmin, activated) VALUES " +
-                        "(?, ?, ?, ?, ?)");
+                var stmt = connection.prepareStatement("INSERT INTO user (id, name, passwordHash, isAdmin, activated, profileData) VALUES " +
+                        "(?, ?, ?, ?, ?, '')");
                 stmt.setString(1, id.toString());
                 stmt.setString(2, name);
                 stmt.setString(3, password);
@@ -288,7 +289,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                 stmt.setBoolean(5, false);
                 stmt.execute();
 
-                return new User(id, name, password, isAdmin, false);
+                return new User(id, name, password, isAdmin, false, "");
             }catch(SQLException e) {
                 e.printStackTrace();
                 return null;
@@ -304,16 +305,43 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                 var users = new LinkedList<User>();
                 var rs = stmt.executeQuery();
                 while(rs.next()) {
-                    var userId = UUID.fromString(rs.getString("id"));
-                    var name = rs.getString("name");
-                    var passwordHash = rs.getString("passwordHash");
-                    var isAdmin = rs.getBoolean("isAdmin");
-                    var activated = rs.getBoolean("activated");
-
-                    users.add(new User(userId, name, passwordHash, isAdmin, activated));
+                    users.add(getUser(rs));
                 }
 
                 return users;
+            }catch(SQLException e) {
+                e.printStackTrace();
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public void setProfileData(UUID userId, String profileData) {
+        withConnection(connection -> {
+            try {
+                var stmt = connection.prepareStatement("UPDATE user SET profileData = ? WHERE id = ?");
+                stmt.setString(1, profileData);
+                stmt.setString(2, userId.toString());
+                stmt.executeUpdate();
+
+                return null;
+            }catch(SQLException e) {
+                e.printStackTrace();
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public String getProfileData(UUID userId) {
+        return withConnection(connection -> {
+            try {
+                var stmt = connection.prepareStatement("SELECT profileData FROM user WHERE id = ?");
+                stmt.setString(1, userId.toString());
+                var rs = stmt.executeQuery();
+
+                return rs.getString("profileData");
             }catch(SQLException e) {
                 e.printStackTrace();
                 return null;
@@ -331,13 +359,7 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                 if(!rs.next())
                     return null;
 
-                var userId = UUID.fromString(rs.getString("id"));
-                var userName = rs.getString("name");
-                var passwordHash = rs.getString("passwordHash");
-                var isAdmin = rs.getBoolean("isAdmin");
-                var activated = rs.getBoolean("activated");
-
-                return new User(userId, userName, passwordHash, isAdmin, activated);
+                return getUser(rs);
             }catch(SQLException e) {
                 e.printStackTrace();
                 return null;

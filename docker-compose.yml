@@ -1,0 +1,32 @@
+version: '3.9'
+
+volumes:
+  sqlite:
+services:
+  backend:
+    build:
+      context: ./backend
+    #depends_on:
+    #  db:
+    #    condition: service_healthy
+    environment:
+      - DATASOURCE_URL=jdbc:sqlite:resources/data.db
+    ports:
+      - "8887:8887"
+    volumes:
+      - sqlite:/resources
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "8080:3000"
+  #db:
+  #  image: 'docker.io/postgres:13.1-alpine'
+  #  environment:
+  #    - POSTGRES_USER=compose-postgres
+  #    - POSTGRES_PASSWORD=compose-postgres
+  #  healthcheck:
+  #    test: ["CMD-SHELL", "pg_isready -U compose-postgres"]
+  #    interval: 10s
+  #    timeout: 5s
+  #    retries: 5

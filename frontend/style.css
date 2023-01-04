@@ -1,0 +1,192 @@
+html {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #222;
+    color: white;
+}
+
+main {
+    background-color: #333;
+}
+
+.cool-border {
+    border: 1px solid black;
+    border-radius: 10px;
+}
+
+.cool-border.shadow {
+    box-shadow: 0px 0px 5px #222;
+}
+
+.entry {
+    align-self: center;
+}
+
+div {
+    /*border: 1px solid;*/
+}
+
+#main-panel-left-right {
+    display: flex;
+    height: calc(80vh - 40px - 1em);
+}
+
+.main-panel-pane {
+    flex-grow: 1;
+    padding: 5px;
+    margin: 5px;
+}
+
+#main-panel-left {
+    max-width: 30%;
+}
+
+#main-panel-right {
+    flex-basis: 60%;
+}
+
+#main-panel-top {
+    display: flex;
+    padding: 5px;
+    margin: 5px;
+}
+
+#main-panel-top-elements-container {
+    display: flex;
+    width: fit-content;
+}
+
+#main-panel-top-elements-container.middle {
+    margin-left: auto;
+}
+
+#main-panel-top-elements-container .entry {
+    margin: 5px;
+}
+.underscore {
+    text-decoration:underline;
+}
+
+#main-panel-right {
+    display:flex;
+    flex-flow:column;
+}
+
+#main-panel-right .text-box {
+    margin-top: auto;
+}
+
+.text-box input {
+    background-color: #444;
+    color: white;
+    width: 100%;
+    padding: 5px;
+}
+
+#main-panel-right .text-box form {
+    margin: 0;
+}
+
+#main-panel-right .messages {
+    padding: 10px;
+    overflow-y: scroll;
+}
+
+.button.cool {
+    background-color: #ddd;
+    color: black;
+    padding: 5px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 5px black;
+    font-weight: bold;
+}
+
+.button {
+    cursor: pointer;
+}
+
+.messages {
+    height: calc(100% - 50px - 6em);
+}
+
+main {
+    margin: 0 auto;
+    margin-top: 30px;
+    max-width: 1200px;
+    padding: 5px;
+    height: 80vh;
+}
+
+#error-container {
+    left: 0;
+    padding: 0;
+    margin: 0 auto;
+    top: 10px;
+    position: absolute;
+    width: 100%;
+    pointer-events: none;
+}
+
+img.icon {
+    vertical-align: middle;
+    margin-right: 5px;
+    margin-left: 5px;
+    height: 16px; width: 16px;
+    image-rendering: crisp-edges;
+}
+
+#error-container .notification {
+    width: fit-content;
+    text-align: center;
+    border-radius: 5px;
+    border: 2px solid rgb(0, 13, 97);
+    margin: 0 auto;
+    margin-bottom: 10px;
+    max-width: 500px;
+    min-width: 5em;
+    padding: 5px;
+    background-color: rgb(1, 64, 182);
+    cursor: pointer;
+    pointer-events: all;
+}
+
+#error-container .error {
+    width: fit-content;
+    text-align: center;
+    border-radius: 5px;
+    border: 2px solid rgb(110, 0, 0);
+    margin: 0 auto;
+    margin-bottom: 10px;
+    max-width: 500px;
+    min-width: 5em;
+    padding: 5px;
+    background-color: rgb(182, 1, 1);
+    cursor: pointer;
+    pointer-events: all;
+}
+
+#error-container .error img {
+    vertical-align: middle;
+}
+
+#conversation-header {
+    width: inherit;
+}
+
+#conversation-header h3 {
+    align-items: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    margin: 5px 5px 0px 5px;
+}
+
+#conversation-header h3 + div {
+    margin: 5px 5px 10px 5px;
+}
+
+.conversation-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}

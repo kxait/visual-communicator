@@ -1,10 +1,13 @@
 package pl.edu.pk.kron.visualcommunicator.clients;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import pl.edu.pk.kron.visualcommunicator.common.Hasher;
+import pl.edu.pk.kron.visualcommunicator.common.external.InstantConverter;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.BusMessage;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.BusMessageType;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.MessageBus;
+import pl.edu.pk.kron.visualcommunicator.common.infrastructure.logging.LogManager;
 import pl.edu.pk.kron.visualcommunicator.common.model.MessageType;
 import pl.edu.pk.kron.visualcommunicator.common.model.ThreadOrchestratorMessage;
 import pl.edu.pk.kron.visualcommunicator.common.model.ThreadOrchestratorMessageType;
@@ -12,6 +15,7 @@ import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.*;
 import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.Error;
 import pl.edu.pk.kron.visualcommunicator.common.model.messages.*;
 
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.UUID;
 
@@ -53,8 +57,11 @@ public class ClientThread implements Runnable {
         this.clientId = clientId;
         this.dataProvider = dataProvider;
         this.userRegistry = userRegistry;
-        System.out.println("client thread for " + clientId.toString() + " started");
-        gson = new Gson();
+        LogManager.instance().logInfo("CLIENT THREAD STARTED %s", clientId.toString());
+        //gson = new Gson();
+        gson = new GsonBuilder()
+                .registerTypeAdapter(Instant.class, new InstantConverter())
+                .create();
     }
 
     @Override
@@ -80,6 +87,8 @@ public class ClientThread implements Runnable {
                     break;
             }
 
+            var userOrClientId = user == null ? clientId.toString() : user.name();
+            LogManager.instance().logInfo("ClientThread HANDLING for %s message {%s}", userOrClientId, message.jsonContent());
 
             var m = message.jsonContent();
             var abstractMessage = gson.fromJson(m, MessageFromWebsocket.class);
@@ -108,6 +117,7 @@ public class ClientThread implements Runnable {
                     case CLIENT_ADMIN_CHANGE_USER_ACTIVATED -> adminChangeUserActivated(gson.fromJson(m, AdminChangeUserActivated.class));
                     case CLIENT_GET_PROFILE_DATA -> getProfileData(gson.fromJson(m, GetProfileData.class));
                     case CLIENT_SET_PROFILE_DATA -> setProfileData(gson.fromJson(m, SetProfileData.class));
+                    case CLIENT_ADMIN_GET_LOGS -> adminGetLogs(gson.fromJson(m, AdminGetLogs.class));
                     default -> null;
                 };
 
@@ -120,14 +130,27 @@ public class ClientThread implements Runnable {
                 }
             }catch(Exception e) {
                 e.printStackTrace();
+                LogManager.instance().logError(e.getLocalizedMessage());
             }
 
-            var busMessage = new BusMessage(gson.toJson(concreteResponse), BusMessageType.MESSAGE_TO_WEBSOCKET, clientId);
+            var jsonResponse = gson.toJson(concreteResponse);
+
+            LogManager.instance().logInfo("ClientThread RESPONSE for %s to %s with %s", userOrClientId, messageType.toString(), jsonResponse);
+
+            var busMessage = new BusMessage(jsonResponse, BusMessageType.MESSAGE_TO_WEBSOCKET, clientId);
             bus.pushOntoBus(busMessage);
         }
-        System.out.println("client thread for " + clientId + " killed");
+        LogManager.instance().logInfo("CLIENT THREAD KILLED %s", clientId.toString());
         if(user != null)
             userRegistry.userLeft(user.id());
+    }
+
+    private ErrOr<AdminGetLogsResponse> adminGetLogs(AdminGetLogs adminGetLogs) {
+        if(user == null || !user.isAdmin())
+            return err(adminGetLogs.getId(), "must be admin");
+
+        var logs = dataProvider.getLogs(adminGetLogs.getCount());
+        return new ErrOr<>(new AdminGetLogsResponse(adminGetLogs.getId(), logs));
     }
 
     private ErrOr<GetProfileDataResponse> getProfileData(GetProfileData getProfileData) {

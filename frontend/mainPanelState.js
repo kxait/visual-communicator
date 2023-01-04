@@ -12,7 +12,9 @@ const MainPanelState = {
     // { userId: uuid }
     userProfile: 4,
     // { conversationId: uuid }
-    conversationProfile: 5
+    conversationProfile: 5,
+    // {}
+    logs: 6
 };
 
 const { publish: setMainPanelState, subscribe: subscribeMainPanelState } = createPubsub();

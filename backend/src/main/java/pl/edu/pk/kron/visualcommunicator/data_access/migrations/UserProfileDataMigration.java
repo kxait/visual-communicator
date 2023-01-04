@@ -6,7 +6,7 @@ import java.sql.SQLException;
 public class UserProfileDataMigration implements Migration {
     @Override
     public long getVersion() {
-        return 5;
+        return 6;
     }
 
     @Override

@@ -49,7 +49,7 @@ class SqlStatements {
 public class InitialSchemaMigration implements Migration{
     @Override
     public long getVersion() {
-        return 1;
+        return 2;
     }
 
     @Override

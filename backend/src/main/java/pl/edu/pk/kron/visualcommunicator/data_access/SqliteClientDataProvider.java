@@ -1,9 +1,8 @@
 package pl.edu.pk.kron.visualcommunicator.data_access;
 
-import pl.edu.pk.kron.visualcommunicator.data_access.models.AuthToken;
-import pl.edu.pk.kron.visualcommunicator.data_access.models.Conversation;
-import pl.edu.pk.kron.visualcommunicator.data_access.models.Message;
-import pl.edu.pk.kron.visualcommunicator.data_access.models.User;
+import pl.edu.pk.kron.visualcommunicator.common.infrastructure.logging.LogSeverity;
+import pl.edu.pk.kron.visualcommunicator.common.infrastructure.sqlite.ConnectionProvider;
+import pl.edu.pk.kron.visualcommunicator.data_access.models.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -17,25 +16,12 @@ import java.util.UUID;
 import java.util.function.Function;
 
 public class SqliteClientDataProvider implements ClientDataProvider {
-    private final String connectionString;
+    private final ConnectionProvider connectionProvider;
     private final Object lock;
 
-    public SqliteClientDataProvider(String connectionString) {
-        this.connectionString = connectionString;
+    public SqliteClientDataProvider(ConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
         lock = 1;
-    }
-
-    private synchronized <T> T withConnection(Function<Connection, T> func) {
-        synchronized(lock) {
-            try {
-                var connection = getConnection();
-                var result = func.apply(connection);
-                connection.close();
-                return result;
-            } catch (SQLException e) {
-                return null;
-            }
-        }
     }
 
     private User getUser(ResultSet rs) throws SQLException {
@@ -49,8 +35,8 @@ public class SqliteClientDataProvider implements ClientDataProvider {
         return new User(id, name, passwordHash, isAdmin, activated, profileData);
     }
 
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(connectionString);
+    public synchronized <T> T withConnection(Function<Connection, T> func) {
+        return connectionProvider.withConnection(func);
     }
 
     @Override
@@ -464,6 +450,34 @@ public class SqliteClientDataProvider implements ClientDataProvider {
                 e.printStackTrace();
                 return null;
             }
+        });
+    }
+
+    @Override
+    public List<Log> getLogs(long count) {
+        return withConnection(connection -> {
+            try {
+                var logs = new LinkedList<Log>();
+                var stmt = connection.prepareStatement("SELECT date, format, argsJson, severity FROM log ORDER BY date DESC LIMIT ?");
+
+                stmt.setLong(1, count);
+
+                var rs = stmt.executeQuery();
+                while(rs.next()) {
+                    var date = Instant.ofEpochMilli(rs.getLong("date"));
+                    var format = rs.getString("format");
+                    var argsJson = rs.getString("argsJson");
+                    var severity = rs.getString("severity");
+
+                    logs.add(new Log(date, format, argsJson, LogSeverity.valueOf(severity)));
+                }
+
+                return logs;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            return new LinkedList<>();
         });
     }
 }

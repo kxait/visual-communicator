@@ -2,6 +2,7 @@ package pl.edu.pk.kron.visualcommunicator.websocket;
 
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.BusMessageType;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.MessageBus;
+import pl.edu.pk.kron.visualcommunicator.common.infrastructure.logging.LogManager;
 
 public class WebsocketMessageSender implements Runnable {
     private final MessageBus bus;
@@ -15,19 +16,24 @@ public class WebsocketMessageSender implements Runnable {
     @Override
     public void run() {
         while(true) {
-            var message = bus.pollByPredicate(m -> m.type() == BusMessageType.MESSAGE_TO_WEBSOCKET);
-            if(message == null) {
-                try {
-                    Thread.sleep(10);
-                } catch (Exception e) {
-                    // killed by ???
-                    e.printStackTrace();
-                    break;
+            try {
+                var message = bus.pollByPredicate(m -> m.type() == BusMessageType.MESSAGE_TO_WEBSOCKET);
+                if (message == null) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (Exception e) {
+                        // killed by ???
+                        e.printStackTrace();
+                        break;
+                    }
+                    continue;
                 }
-                continue;
+                server.sendToWebsocket(message.jsonContent(), message.recipientId());
+            }catch(Exception e) {
+                e.printStackTrace();
+                LogManager.instance().logError("WebsocketMessageSender encountered a severe error: %s", e.getMessage());
             }
-            server.sendToWebsocket(message.jsonContent(), message.recipientId());
         }
-        System.out.println("💀 WebsocketMessageSender died");
+        LogManager.instance().logError("WebsocketMessageSender died");
     }
 }

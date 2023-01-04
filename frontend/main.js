@@ -85,14 +85,6 @@ const main = async () => {
   if (isLoggedIn()) {
     loggedIn();
 
-    setTimeout(() => {
-      setMainPanelState({
-        "mainPanelState": 4,
-        "additionalData": {
-            "userId": "43befff0-513a-4962-98b7-e0f54866e628"
-        }
-    });
-    }, 300);
   } else {
     notLoggedIn();
   }

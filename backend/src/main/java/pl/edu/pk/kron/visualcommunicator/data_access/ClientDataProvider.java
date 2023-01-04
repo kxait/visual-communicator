@@ -28,4 +28,6 @@ public interface ClientDataProvider {
 
     Conversation createNewConversation(String name, List<UUID> recipients, UUID author);
     Message newMessageInConversation(UUID conversationId, String content, UUID author);
+
+    List<Log> getLogs(long count);
 }

@@ -133,6 +133,12 @@ const createClientSetProfileData = profileData => JSON.stringify({
     profileData
 });
 
+const createClientAdminGetLogs = count => JSON.stringify({
+    type: messageTypes.clientAdminGetLogs,
+    id: uuidv4(),
+    count
+});
+
 export {
     createCreateConversationMessage,
     createGetAuthMessage,
@@ -152,5 +158,6 @@ export {
     createAdminChangeUserActivated,
     createAdminChangeUserPassword,
     createClientGetProfileData,
-    createClientSetProfileData
+    createClientSetProfileData,
+    createClientAdminGetLogs
 }

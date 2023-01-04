@@ -5,6 +5,8 @@ import Icon from "./Icon.js";
 import { createError, createNotification } from "./errorManager.js";
 import { makeid, sha256 } from "./utils.js";
 import ClickableIcon from "./ClickableIcon.js";
+import CoolButton from "./CoolButton.js";
+import { MainPanelState, setMainPanelState } from "./mainPanelState.js";
 
 const Settings = () => {
     const userIdElem = regeneratable(({ userId = "" }) => 
@@ -141,6 +143,9 @@ const Settings = () => {
                     Icon({ path: "icons/accept.png" }),
                     $$("span", { innerText: "jestes administratorem!"})
                 ]),
+                CoolButton({ style: "width: fit-content", onclick: () => {
+                    setMainPanelState({ mainPanelState: MainPanelState.logs });
+                }, text: "logi", src: "icons/application_view_list.png" }),
                 $$("fieldset", {}, [
                     $$("legend", { innerText: "ustawienia administratora" }),
                     $$("div", {}, [

@@ -7,6 +7,7 @@ import Settings from "./Settings.js";
 import { MainPanelState, subscribeMainPanelState, setMainPanelState } from "./mainPanelState.js";
 import UserProfile from "./UserProfile.js";
 import ConversationProfile from "./ConversationProfile.js";
+import Logs from "./Logs.js";
 
 const MainPanel = () => {
     let unsubscribe = () => {};
@@ -39,6 +40,9 @@ const MainPanel = () => {
 
         if(mainPanelState === MainPanelState.conversationProfile)
             return ConversationProfile({ conversationId: additionalData.conversationId });
+
+        if(mainPanelState === MainPanelState.logs)
+            return Logs();
         
         return $$("div", { innerText: "oops" });
     });

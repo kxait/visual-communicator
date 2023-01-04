@@ -1,5 +1,7 @@
 package pl.edu.pk.kron.visualcommunicator.common.infrastructure;
 
+import pl.edu.pk.kron.visualcommunicator.common.infrastructure.logging.LogManager;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -14,7 +16,7 @@ public class MessageBus {
     public synchronized void pushOntoBus(BusMessage message) {
         synchronized(messages) {
             messages.add(message);
-            System.out.println("bus received message " + message.type() + ", " + message.jsonContent());
+            //LogManager.instance().logInfo("BUS RECV %s '%s'", message.type().toString(), message.jsonContent());
         }
     }
 
@@ -23,7 +25,7 @@ public class MessageBus {
             for (var message : messages) {
                 if (predicate.test(message)) {
                     messages.remove(message);
-                    System.out.println("removed message " + message.type() + ", " + message.jsonContent());
+                    //LogManager.instance().logInfo("BUS REM %s '%s'", message.type().toString(), message.jsonContent());
                     return message;
                 }
             }

@@ -8,7 +8,7 @@ import java.sql.SQLException;
 public class HashPasswordsMigration implements Migration {
     @Override
     public long getVersion() {
-        return 3;
+        return 4;
     }
 
     @Override

@@ -6,6 +6,7 @@ import org.java_websocket.server.WebSocketServer;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.BusMessage;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.BusMessageType;
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.MessageBus;
+import pl.edu.pk.kron.visualcommunicator.common.infrastructure.logging.LogManager;
 
 import java.net.InetSocketAddress;
 import java.util.*;
@@ -35,7 +36,7 @@ public class VisualCommunicatorWebsocketServer extends WebSocketServer {
 
     public VisualCommunicatorWebsocketServer(int port, MessageBus bus) {
         super(new InetSocketAddress(port));
-        System.out.println("web socket server created at " + port);
+        LogManager.instance().logInfo("web socket server created at %d",  port);
         this.bus = bus;
 
         clientByClientId = new Hashtable<>();
@@ -62,7 +63,6 @@ public class VisualCommunicatorWebsocketServer extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket webSocket, String s) {
-        System.out.println("websocket message received: addr=" + webSocket.getRemoteSocketAddress() + ", decoded=" + s + ", s=" + s);
         var client = clientBySocketAddress.get(webSocket.getRemoteSocketAddress());
         var id = client.getId();
         var busMessage = new BusMessage(s, BusMessageType.MESSAGE_TO_CLIENT_THREAD, id);
@@ -71,14 +71,12 @@ public class VisualCommunicatorWebsocketServer extends WebSocketServer {
 
     @Override
     public void onError(WebSocket webSocket, Exception e) {
-        System.out.println("websocket error addr=" + webSocket.getRemoteSocketAddress());
-
         e.printStackTrace();
     }
 
     @Override
     public void onStart() {
-        System.out.println("web socket server listening");
+        LogManager.instance().logInfo("web socket server listening");
     }
 
     public void sendToWebsocket(String content, UUID clientId) {
@@ -87,7 +85,10 @@ public class VisualCommunicatorWebsocketServer extends WebSocketServer {
                 .stream()
                 .filter(c -> c.getRemoteSocketAddress() == client.getAddress())
                 .findFirst()
-                .get();
+                .orElse(null);
+
+        if(connection == null)
+            return;
 
         if(content.equals("disconnect")) {
             connection.close();

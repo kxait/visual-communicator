@@ -6,7 +6,7 @@ import java.sql.SQLException;
 public class BlankJsonUserProfileMigration implements Migration {
     @Override
     public long getVersion() {
-        return 6;
+        return 7;
     }
 
     @Override

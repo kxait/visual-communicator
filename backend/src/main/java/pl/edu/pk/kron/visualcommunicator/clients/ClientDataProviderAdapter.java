@@ -1,9 +1,12 @@
 package pl.edu.pk.kron.visualcommunicator.clients;
 
+import com.google.gson.*;
 import pl.edu.pk.kron.visualcommunicator.common.Hasher;
 import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.*;
 import pl.edu.pk.kron.visualcommunicator.data_access.ClientDataProvider;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.Type;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
@@ -15,9 +18,14 @@ import java.util.UUID;
 
 public class ClientDataProviderAdapter {
     private final ClientDataProvider provider;
+    private final Gson gson;
 
     public ClientDataProviderAdapter(ClientDataProvider provider) {
         this.provider = provider;
+        //gson = new Gson();
+        gson = new GsonBuilder()
+                .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+                .create();
     }
 
     private Conversation mapConversationToCommonModel(pl.edu.pk.kron.visualcommunicator.data_access.models.Conversation dalConversation) {
@@ -42,6 +50,15 @@ public class ClientDataProviderAdapter {
                 dalUser.isAdmin(),
                 dalUser.activated(),
                 dalUser.profileData());
+    }
+
+    private Log mapLogToCommonModel(pl.edu.pk.kron.visualcommunicator.data_access.models.Log dalLog) {
+        var args = gson.fromJson(dalLog.argsJson(), Object[].class);
+        return new Log(dalLog.date(),
+                dalLog.format(),
+                args,
+                dalLog.severity(),
+                String.format(dalLog.format(), args));
     }
 
     public Conversation getConversationById(UUID id, UUID sender) {
@@ -171,4 +188,9 @@ public class ClientDataProviderAdapter {
     public String getUserProfileData(UUID userId) { return provider.getProfileData(userId); }
 
     public void setUserProfileData(UUID userId, String data) { provider.setProfileData(userId, data); }
+
+    public List<Log> getLogs(long count) {
+        var logs = provider.getLogs(count);
+        return logs.stream().map(this::mapLogToCommonModel).toList();
+    }
 }

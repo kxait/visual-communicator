@@ -1,5 +1,7 @@
 package pl.edu.pk.kron.visualcommunicator.data_access.migrations;
 
+import pl.edu.pk.kron.visualcommunicator.common.infrastructure.logging.LogManager;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.UUID;
@@ -13,7 +15,7 @@ public class AdminUserMigration implements Migration {
 
     @Override
     public long getVersion() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -26,7 +28,6 @@ public class AdminUserMigration implements Migration {
         stmt.setString(1, id);
         stmt.setString(2, password);
         stmt.executeUpdate();
-
-        System.out.println("'admin' user created with password '" + password + "' - DO NOT LOSE IT!");
+        LogManager.instance().logWarning("'admin' user created with password '%s' - DO NOT LOSE IT!", password);
     }
 }

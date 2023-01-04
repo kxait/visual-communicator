@@ -18,6 +18,7 @@ const messageTypes = {
     clientAdminChangeUserActivated: "CLIENT_ADMIN_CHANGE_USER_ACTIVATED",
     clientGetProfileData: 'CLIENT_GET_PROFILE_DATA',
     clientSetProfileData: 'CLIENT_SET_PROFILE_DATA',
+    clientAdminGetLogs: 'CLIENT_ADMIN_GET_LOGS',
 
     serverPing: "SERVER_PING",
     serverNewMessage: "SERVER_NEW_MESSAGE",

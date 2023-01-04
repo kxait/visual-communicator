@@ -6,7 +6,7 @@ import java.sql.SQLException;
 public class CreateIsUserActivatedMigration implements Migration {
     @Override
     public long getVersion() {
-        return 4;
+        return 5;
     }
 
     @Override

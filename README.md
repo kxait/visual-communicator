@@ -8,3 +8,6 @@ Java 19, Websockets, plain old Javascript, SQLite
 - Message bus
 - DB Migrations
 - Multithreaded handling of client connections
+- Docker and docker-compose integration
+- Sqlite semi-structured logging (filtering by format)
+- Functional and functioning UI

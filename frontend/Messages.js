@@ -17,7 +17,7 @@ const Messages = ({ conversationId, onSubscribe }) => {
 
     let blockedUsers = []
 
-    const scroll = () => document.querySelector("#scroller").scrollIntoView();
+    const scroll = () => document.querySelector("#scroller").scrollIntoView(false);
 
     const messages = regeneratable(({ messages = [] }) => {
         const elem = $$("div", { className: "messages"})
@@ -26,7 +26,7 @@ const Messages = ({ conversationId, onSubscribe }) => {
                 continue;
 
             let message = i.content;
-            const mess = regeneratable(({ username = "" }) => Message({ author: username, message }));
+            const mess = regeneratable(({ username = "" }) => Message({ author: username, message, millis: i.millis }));
             elem.appendChild(mess.elem);
             userNameById(i.authorUserId)
                 .then(username => {

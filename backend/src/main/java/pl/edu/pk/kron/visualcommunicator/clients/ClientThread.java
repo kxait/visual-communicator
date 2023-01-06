@@ -309,11 +309,13 @@ public class ClientThread implements Runnable {
             userRegistry.newUserAuthenticated(clientId, user.id());
             return new ErrOr<>(new GetAuthResponse(getAuth.getId(), user.id(), user.name()));
         }
-        return err(getAuth.getId(), "bad credentials");
+        return err(getAuth.getId(), "bad token");
     }
 
     private ErrOr<GetAuthTokenResponse> getAuthToken(GetAuthToken getAuthToken) {
         var user = dataProvider.getUserByName(getAuthToken.getUserName());
+        if(user == null)
+            return err(getAuthToken.getId(), "bad credentials");
 
         var dbPasswordHashedWithSalt = Hasher.sha256(user.passwordHash() + getAuthToken.getSalt());
 
@@ -326,7 +328,7 @@ public class ClientThread implements Runnable {
             var token = dataProvider.getAuthTokenForUser(user.id());
             return new ErrOr<>(new GetAuthTokenResponse(getAuthToken.getId(), new Token(token), user.id(), user.name()));
         }
-        return err(getAuthToken.getId(), "bad token");
+        return err(getAuthToken.getId(), "bad credentials");
     }
 
     private ErrOr<GetConversationsResponse> getConversations(GetConversations getConversations) {

@@ -27,7 +27,8 @@ public class ConnectionProvider {
                 connection.close();
                 return result;
             } catch (SQLException e) {
-                return null;
+                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
     }

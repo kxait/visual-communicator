@@ -12,7 +12,7 @@ export const Message = ({ author = "", message = "" }) => {
     }
 
     return $$("div", {}, [
-        $$("span", { style: 'font-weight: bold; margin-right: 5px', innerText: `${author}:`}),
-        $$("span", {innerText: message})
+        $$("span", { style: 'vertical-align: top; font-weight: bold; margin-right: 5px', innerText: `${author}:`}),
+        $$("span", { style: 'overflow: hidden; overflow-wrap: anywhere; display: inline-block;', innerText: message})
     ]);
 }

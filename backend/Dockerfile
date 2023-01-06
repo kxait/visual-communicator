@@ -13,7 +13,5 @@ COPY --from=maven target/* ./app/
 COPY --from=maven target/VisualCommunicatorServer-*.jar ./app/VisualCommunicatorServer.jar
 COPY --from=maven target/dependency/* ./app/dependency/
 
-RUN ["mkdir", "./resources/"]
-
 CMD ["java", "-cp", "./app/VisualCommunicatorServer.jar:./app/dependency/*", "pl.edu.pk.kron.visualcommunicator.Main"]
 #CMD ["java", "-jar", "./app/VisualCommunicatorServer.jar"]

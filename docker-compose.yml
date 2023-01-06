@@ -2,6 +2,15 @@ version: '3.9'
 
 volumes:
   sqlite:
+    external: true
+networks:
+  backend:
+    external:
+      name: backend_default
+  frontend:
+    external:
+      name: frontend_default
+
 services:
   backend:
     build:
@@ -10,16 +19,38 @@ services:
     #  db:
     #    condition: service_healthy
     environment:
-      - DATASOURCE_URL=jdbc:sqlite:resources/data.db
-    ports:
-      - "8887:8887"
+      - DATASOURCE_URL=jdbc:sqlite:/resources/data.db
     volumes:
       - sqlite:/resources
+    networks:
+      - backend
   frontend:
     build:
       context: ./frontend
+    networks:
+      - frontend
+  nginx:
+    image: nginx:1.15-alpine
+    restart: unless-stopped
     ports:
-      - "8080:3000"
+      - "80:80"
+      - "443:443"
+      - "8887:8887"
+    volumes:
+      - ./router:/etc/nginx/conf.d
+      - ./router/data/certbot/conf:/etc/letsencrypt
+      - ./router/data/certbot/www:/var/www/certbot
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    networks:
+      - backend
+      - frontend
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./router/data/certbot/conf:/etc/letsencrypt
+      - ./router/data/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
   #db:
   #  image: 'docker.io/postgres:13.1-alpine'
   #  environment:

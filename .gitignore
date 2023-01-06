@@ -1,2 +1,4 @@
 *.class
 *.db
+init-letsencrypt.sh
+data/

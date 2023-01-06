@@ -147,7 +147,7 @@ public class ClientThread implements Runnable {
 
     private ErrOr<AdminGetLogsResponse> adminGetLogs(AdminGetLogs adminGetLogs) {
         if(user == null || !user.isAdmin())
-            return err(adminGetLogs.getId(), "must be admin");
+            return err(adminGetLogs.getId(), "must be an admin");
 
         var logs = dataProvider.getLogs(adminGetLogs.getCount());
         return new ErrOr<>(new AdminGetLogsResponse(adminGetLogs.getId(), logs));
@@ -347,6 +347,9 @@ public class ClientThread implements Runnable {
         if(user == null) return err(sendMessageToConversation.getId(), "must be logged in");
         if(sendMessageToConversation.getContent().equals(""))
             return err(sendMessageToConversation.getId(), "empty message body");
+
+        if(sendMessageToConversation.getContent().length() > 300)
+            return err(sendMessageToConversation.getConversationId(), "too long");
 
         var message = dataProvider.newMessageInConversation(sendMessageToConversation.getConversationId(), sendMessageToConversation.getContent(), user.id());
 

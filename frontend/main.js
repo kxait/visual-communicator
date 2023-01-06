@@ -76,7 +76,8 @@ const handleLogin = (result) => {
 const main = async () => {
   connecting();
   try {
-    await makeSocket(`ws://${window.location.hostname}:8887`);
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    await makeSocket(`${protocol}//${window.location.hostname}:8887`);
   } catch (e) {
     couldNotConnect();
     return;

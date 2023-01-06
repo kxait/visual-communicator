@@ -42,13 +42,8 @@ public class SqliteMigrationManager {
         migrationsByName.put(name, value);
     }
 
-    private void withConnection(Consumer<Connection> func) {
-        connectionProvider.withConnection(connection -> { func.accept(connection); return null; });
-    }
-
-    public Exception performMigrations() {
-        var lastMigration = new AtomicLong(-1L);
-        withConnection(conn -> {
+    public void performMigrations() {
+        var lastMigration = connectionProvider.withConnection(conn -> {
             PreparedStatement stmt = null;
             try {
                 stmt = conn.prepareStatement(MigrationSqlStatements.CreateMigrations);
@@ -56,31 +51,32 @@ public class SqliteMigrationManager {
                 stmt.execute();
                 stmt = conn.prepareStatement(MigrationSqlStatements.LastPerformedMigration);
                 var rs = stmt.executeQuery();
+                var result = -1L;
                 if (rs.next()) {
-                    lastMigration.set(rs.getLong("version"));
+                    result = rs.getLong("version");
                 }
                 conn.close();
+                return result;
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         });
 
-        LogManager.instance().logInfo("last performed migration: %d", lastMigration.get());
+        LogManager.instance().logInfo("last performed migration: %d", lastMigration);
 
-        long finalLastMigration = lastMigration.get();
         var migrationsSortedByVersion = Collections.list(migrationsByName.keys())
                 .stream()
                 .map(name -> new Kvp<>(name, migrationsByName.get(name)))
                 .sorted(Comparator.comparingLong(a -> (a.value().getVersion())))
-                .filter(m -> m.value().getVersion() > finalLastMigration)
+                .filter(m -> m.value().getVersion() > lastMigration)
                 .toList();
 
-        var shouldBreak = new AtomicBoolean(false);
-        for(var i : migrationsSortedByVersion) {
-            if(shouldBreak.get() == true)
-                break;
-            withConnection(connection -> {
+        LogManager.instance().logInfo("migrations to perform: %d", migrationsSortedByVersion.size());
+
+        for (var i : migrationsSortedByVersion) {
+            var result = connectionProvider.withConnection(connection -> {
                 try {
+                    //LogManager.instance().logInfo("performing migration %s for update to version %d", i.key(), i.value().getVersion());
                     i.value().perform(connection);
 
                     var stmt = connection.prepareStatement(MigrationSqlStatements.InsertPerformedMigration);
@@ -89,16 +85,16 @@ public class SqliteMigrationManager {
                     stmt.executeUpdate();
 
                     LogManager.instance().logInfo("migration %s performed for update to version %d", i.key(), i.value().getVersion());
-                }catch(SQLException e) {
+                    return true;
+                } catch (SQLException e) {
                     LogManager.instance().logError("migration %s for version %d failed", i.key(), i.value().getVersion());
                     e.printStackTrace();
-                    shouldBreak.set(true);
+                    return false;
                 }
             });
+            if (!result) {
+                throw new RuntimeException("migration failed");
+            }
         }
-
-        return shouldBreak.get() ? new RuntimeException("migration failed") : null;
     }
-
-
 }

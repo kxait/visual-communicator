@@ -17,6 +17,8 @@ const Messages = ({ conversationId, onSubscribe }) => {
 
     let blockedUsers = []
 
+    const scroll = () => document.querySelector("#scroller").scrollIntoView();
+
     const messages = regeneratable(({ messages = [] }) => {
         const elem = $$("div", { className: "messages"})
         for(const i of messages) {
@@ -26,12 +28,13 @@ const Messages = ({ conversationId, onSubscribe }) => {
             let message = i.content;
             const mess = regeneratable(({ username = "" }) => Message({ author: username, message }));
             elem.appendChild(mess.elem);
-            elem.scrollTo(0, elem.scrollHeight);
             userNameById(i.authorUserId)
                 .then(username => {
                     mess.regenerate({ username })
                 }).catch(e => console.error(e));
         }
+        const scroller = $$("div", { id: "scroller" });
+        elem.append(scroller);
         return elem;
     });
 
@@ -122,6 +125,7 @@ const Messages = ({ conversationId, onSubscribe }) => {
     const appendMessage = message => { 
         messagesList.push(message.message); 
         messages.regenerate({ messages: messagesList });
+        scroll();
     }
 
     const unsubscribe = subscribeSocket(data => {
@@ -136,6 +140,7 @@ const Messages = ({ conversationId, onSubscribe }) => {
         blockedUsers = (await profileData()).blockedUsers ?? [];
         messagesList = (await sendSocket(createGetMessagesMessage(conversationId))).messages;
         messages.regenerate({ messages: messagesList });
+        scroll();
     })();
 
     return div;

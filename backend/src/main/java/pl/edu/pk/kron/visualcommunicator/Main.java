@@ -44,8 +44,9 @@ public class Main {
         migrationManager.addMigration("blank_json_profile_data", new BlankJsonUserProfileMigration());
         migrationManager.addMigration("logger", new LoggerMigration());
 
-        var e = migrationManager.performMigrations();
-        if(e != null) {
+        try {
+            migrationManager.performMigrations();
+        }catch(Exception e) {
             e.printStackTrace();
             logManager.logError("could not perform migrations on %s, exiting", connectionString);
             return;

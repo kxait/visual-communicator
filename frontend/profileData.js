@@ -3,7 +3,10 @@ import { sendSocket } from "./socket.js"
 
 const profileData = async () => {
     var profileData = await sendSocket(createClientGetProfileData());
-    return JSON.parse(profileData.profileData);
+
+    const data = (profileData.profileData ?? "") === "" ? "{}" : profileData.profileData
+
+    return JSON.parse(data);
 }
 
 const setProfileData = async pd => {

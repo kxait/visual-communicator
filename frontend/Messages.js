@@ -17,7 +17,7 @@ const Messages = ({ conversationId, onSubscribe }) => {
 
     let blockedUsers = []
 
-    const scroll = element => element.scrollTo(0, element.scrollHeight);
+    const scroll = element => element.scrollTo(0, element.scrollHeight + 100000);
 
     const messages = regeneratable(({ messages = [] }) => {
         const elem = $$("div", { className: "messages"})
@@ -31,6 +31,7 @@ const Messages = ({ conversationId, onSubscribe }) => {
             userNameById(i.authorUserId)
                 .then(username => {
                     mess.regenerate({ username })
+                    scroll(elem);
                 }).catch(e => console.error(e));
         }
         const scroller = $$("div", { id: "scroller" });

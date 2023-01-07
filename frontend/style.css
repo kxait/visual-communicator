@@ -87,7 +87,8 @@ div {
 }
 
 #main-panel-right .messages {
-    padding: 10px;
+    height: calc(100% - 50px - 3em);
+    padding-bottom: 5px;
     overflow-y: scroll;
 }
 
@@ -102,10 +103,6 @@ div {
 
 .button {
     cursor: pointer;
-}
-
-.messages {
-    height: calc(100% - 50px - 6em);
 }
 
 main {

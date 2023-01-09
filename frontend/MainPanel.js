@@ -51,6 +51,7 @@ const MainPanel = () => {
 
     const logout = () => {
         localStorage.removeItem('authToken');
+        console.log("logged out!");
         location.reload();
     }
 
@@ -79,7 +80,7 @@ const MainPanel = () => {
             $$("div", {id: "main-panel-left", className: "main-panel-pane cool-border"}, [
                 ConversationsPanel()
             ]),
-            $$("div", { style: "overflow-y: scroll", id: "main-panel-right", className: "main-panel-pane cool-border"}, [
+            $$("div", { style: "overflow-y: overlay", id: "main-panel-right", className: "main-panel-pane cool-border"}, [
                 mainPanel.elem
             ])
         ])

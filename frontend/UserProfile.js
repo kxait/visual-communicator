@@ -27,7 +27,7 @@ const UserProfile = ({ userId }) => {
 
     const blockUnblockButton = regeneratable(({ isBlocked = false }) => {
         return isBlocked
-            ? CoolButton({ style: "width: fit-content", text: "odzablokuj", src: "icons/accept.png", onclick: unblock })
+            ? CoolButton({ style: "width: fit-content", text: "odblokuj", src: "icons/accept.png", onclick: unblock })
             : CoolButton({ style: "width: fit-content", text: "zablokuj", src: "icons/cancel.png", onclick: block });
     });
 

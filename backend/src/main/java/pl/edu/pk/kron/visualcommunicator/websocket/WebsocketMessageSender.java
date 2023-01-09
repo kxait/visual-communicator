@@ -22,7 +22,6 @@ public class WebsocketMessageSender implements Runnable {
                     try {
                         Thread.sleep(10);
                     } catch (Exception e) {
-                        // killed by ???
                         e.printStackTrace();
                         break;
                     }

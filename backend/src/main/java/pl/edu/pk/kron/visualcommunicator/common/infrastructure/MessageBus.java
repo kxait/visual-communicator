@@ -16,7 +16,6 @@ public class MessageBus {
     public synchronized void pushOntoBus(BusMessage message) {
         synchronized(messages) {
             messages.add(message);
-            //LogManager.instance().logInfo("BUS RECV %s '%s'", message.type().toString(), message.jsonContent());
         }
     }
 
@@ -25,7 +24,6 @@ public class MessageBus {
             for (var message : messages) {
                 if (predicate.test(message)) {
                     messages.remove(message);
-                    //LogManager.instance().logInfo("BUS REM %s '%s'", message.type().toString(), message.jsonContent());
                     return message;
                 }
             }

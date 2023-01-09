@@ -5,7 +5,7 @@ import { messageTypes } from "./messageTypes.js";
 import { userNameById } from "./userNameById.js";
 import { createNotification } from "./errorManager.js";
 import { setState } from "./state.js";
-import { setMainPanelState, MainPanelState } from "./mainPanelState.js";
+import { setMainPanelState, MainPanelState, subscribeMainPanelState } from "./mainPanelState.js";
 import { patchProfileData, profileData, setProfileData } from "./profileData.js";
 import { until } from "./utils.js";
 
@@ -42,8 +42,6 @@ const conversationsPanelOnLoadedProfileData = profileData => {
     const onNewConversation = () => {
         setMainPanelState({ mainPanelState: MainPanelState.newConversation, additionalData: { newConversation: true } })
     }
-
-    console.log(profileData);
 
     let conversationsThatHaveNewMessages = profileData.conversationsThatHaveNewMessages ?? [];
 

@@ -1,0 +1,11 @@
+{
+    "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+    "name": "visual communicator",
+    "short_name": "karol",
+    "display": "fullscreen",
+    "scope": "https://kx.ascii.tk",
+    "background_color": "#222",
+    "theme_color": "#272727",
+    "start_url": ".",
+    "categories": ["business", "technology", "web"]
+}

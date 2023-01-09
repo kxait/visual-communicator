@@ -88,7 +88,7 @@ public class ClientThread implements Runnable {
             }
 
             var userOrClientId = user == null ? clientId.toString() : user.name();
-            LogManager.instance().logInfo("ClientThread HANDLING for %s message {%s}", userOrClientId, message.jsonContent());
+            LogManager.instance().logInfo("ClientThread HANDLING for %s message {%s} type " + message.type().toString(), userOrClientId, message.jsonContent());
 
             var m = message.jsonContent();
             var abstractMessage = gson.fromJson(m, MessageFromWebsocket.class);
@@ -135,7 +135,7 @@ public class ClientThread implements Runnable {
 
             var jsonResponse = gson.toJson(concreteResponse);
 
-            LogManager.instance().logInfo("ClientThread RESPONSE for %s to %s with %s", userOrClientId, messageType.toString(), jsonResponse);
+            LogManager.instance().logInfo("ClientThread RESPONSE for %s type " + messageType + " with %s", userOrClientId, jsonResponse);
 
             var busMessage = new BusMessage(jsonResponse, BusMessageType.MESSAGE_TO_WEBSOCKET, clientId);
             bus.pushOntoBus(busMessage);

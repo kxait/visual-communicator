@@ -2,15 +2,25 @@ html {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     background-color: #222;
     color: white;
+    padding: 0;
+    margin: 0;
+    border: 0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    border: 0;
 }
 
 main {
-    background-color: #333;
-}
-
-.cool-border {
-    border: 1px solid black;
-    border-radius: 10px;
+    overflow: hidden;
+    border: 0;
+    padding: 0;
+    background-color: #222;
+    max-width: 1200px;
+    margin: 0 auto;
+    height: 100vh;
 }
 
 .cool-border.shadow {
@@ -27,13 +37,12 @@ div {
 
 #main-panel-left-right {
     display: flex;
-    height: calc(80vh - 40px - 1em);
+    height: calc(100vh - 5em);
 }
 
 .main-panel-pane {
     flex-grow: 1;
     padding: 5px;
-    margin: 5px;
 }
 
 #main-panel-left {
@@ -42,12 +51,13 @@ div {
 
 #main-panel-right {
     flex-basis: 60%;
+    border-left: 2px solid #272727;
 }
 
 #main-panel-top {
     display: flex;
-    padding: 5px;
-    margin: 5px;
+    padding: 10px;
+    background-color: #272727;
 }
 
 #main-panel-top-elements-container {
@@ -93,11 +103,9 @@ div {
 }
 
 .button.cool {
-    background-color: #ddd;
+    background-color: #fff;
     color: black;
-    padding: 5px;
-    border-radius: 5px;
-    box-shadow: 0px 0px 5px black;
+    padding: 3px;
     font-weight: bold;
 }
 
@@ -105,13 +113,7 @@ div {
     cursor: pointer;
 }
 
-main {
-    margin: 0 auto;
-    margin-top: 30px;
-    max-width: 1200px;
-    padding: 5px;
-    height: 80vh;
-}
+
 
 #error-container {
     left: 0;
@@ -175,6 +177,8 @@ img.icon {
     text-overflow: ellipsis;
     overflow: hidden;
     margin: 5px 5px 0px 5px;
+    background-color: #333;
+    padding: 3px;
 }
 
 #conversation-header h3 + div {
@@ -185,5 +189,7 @@ img.icon {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    background-color: #333;
+    padding: 2px;
 
 }

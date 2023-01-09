@@ -6,9 +6,9 @@ import pl.edu.pk.kron.visualcommunicator.common.infrastructure.logging.LogManage
 
 public class WebsocketMessageSender implements Runnable {
     private final MessageBus bus;
-    private final VisualCommunicatorWebsocketServer server;
+    private final WebsocketServer server;
 
-    public WebsocketMessageSender(MessageBus bus, VisualCommunicatorWebsocketServer server) {
+    public WebsocketMessageSender(MessageBus bus, WebsocketServer server) {
         this.bus = bus;
         this.server = server;
     }

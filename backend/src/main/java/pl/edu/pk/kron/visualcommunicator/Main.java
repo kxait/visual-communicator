@@ -9,7 +9,7 @@ import pl.edu.pk.kron.visualcommunicator.common.infrastructure.logging.SqliteLog
 import pl.edu.pk.kron.visualcommunicator.common.infrastructure.sqlite.ConnectionProvider;
 import pl.edu.pk.kron.visualcommunicator.data_access.SqliteClientDataProvider;
 import pl.edu.pk.kron.visualcommunicator.data_access.migrations.*;
-import pl.edu.pk.kron.visualcommunicator.websocket.VisualCommunicatorWebsocketServer;
+import pl.edu.pk.kron.visualcommunicator.websocket.WebsocketServer;
 import pl.edu.pk.kron.visualcommunicator.websocket.WebsocketMessageSender;
 
 import java.util.concurrent.Executors;
@@ -60,11 +60,11 @@ public class Main {
         var threadOrchestrator = new ThreadOrchestratorThread(bus, providerAdapter, userRegistry);
         exe.submit(threadOrchestrator);
 
-        var karol = new VisualCommunicatorWebsocketServer(PORT, bus);
+        var websocketServer = new WebsocketServer(PORT, bus);
 
-        var websocketSender = new WebsocketMessageSender(bus, karol);
+        var websocketSender = new WebsocketMessageSender(bus, websocketServer);
         exe.submit(websocketSender);
 
-        karol.start();
+        websocketServer.start();
     }
 }

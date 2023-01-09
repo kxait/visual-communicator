@@ -29,12 +29,12 @@ class Client {
     }
 }
 
-public class VisualCommunicatorWebsocketServer extends WebSocketServer {
+public class WebsocketServer extends WebSocketServer {
     private final Dictionary<UUID, Client> clientByClientId;
     private final Dictionary<InetSocketAddress, Client> clientBySocketAddress;
     private final MessageBus bus;
 
-    public VisualCommunicatorWebsocketServer(int port, MessageBus bus) {
+    public WebsocketServer(int port, MessageBus bus) {
         super(new InetSocketAddress(port));
         LogManager.instance().logInfo("web socket server created at %d",  port);
         this.bus = bus;

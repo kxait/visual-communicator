@@ -65,7 +65,7 @@ public class ClientThread implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void run() { //pull :C
         while(true) {
             var message = bus.pollByPredicate(m -> m.type() == BusMessageType.MESSAGE_TO_CLIENT_THREAD && m.recipientId().equals(clientId));
             if(message == null) {

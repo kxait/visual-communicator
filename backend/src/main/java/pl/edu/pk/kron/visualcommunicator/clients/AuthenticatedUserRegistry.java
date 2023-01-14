@@ -9,7 +9,7 @@ public class AuthenticatedUserRegistry {
     private final Dictionary<UUID, UUID> clientIdByUserId;
 
     public AuthenticatedUserRegistry() {
-        userIdByClientId = new Hashtable<>();
+        userIdByClientId = new Hashtable<>(); //sync requirement
         clientIdByUserId = new Hashtable<>();
     }
 

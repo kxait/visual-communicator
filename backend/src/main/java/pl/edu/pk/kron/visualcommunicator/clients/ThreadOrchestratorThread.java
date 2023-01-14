@@ -13,7 +13,7 @@ import java.util.UUID;
 public class ThreadOrchestratorThread implements Runnable {
     private final Dictionary<UUID, Thread> clientThreads;
     private final MessageBus bus;
-    private final Gson gson;
+    private final Gson gson; //java json serializer/deserializer
     private final ClientDataProviderAdapter dataProvider;
     private final AuthenticatedUserRegistry userRegistry;
 

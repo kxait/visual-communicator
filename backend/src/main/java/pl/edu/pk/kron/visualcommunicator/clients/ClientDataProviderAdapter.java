@@ -1,6 +1,8 @@
+//data_access.models to common.model adapter due to data providers layers separation
+
 package pl.edu.pk.kron.visualcommunicator.clients;
 
-import com.google.gson.*;
+import com.google.gson.*; //java json serializer/deserializer
 import pl.edu.pk.kron.visualcommunicator.common.Hasher;
 import pl.edu.pk.kron.visualcommunicator.common.model.message_contents.*;
 import pl.edu.pk.kron.visualcommunicator.data_access.ClientDataProvider;

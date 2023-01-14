@@ -64,7 +64,7 @@ const NewConversation = () => {
         return $$("input", { 
             type: "text", 
             maxLength: "30",
-            placeholder: "nazwa konwersacji", 
+            placeholder: "Nazwa konwersacji", 
             value: conversationName, 
             disabled, 
             oninput: () => {
@@ -117,7 +117,7 @@ const NewConversation = () => {
             })
     }
 
-    const searchInput = $$("input", { type: "text", placeholder: "wyszukaj użytkownika", oninput: searchUser});
+    const searchInput = $$("input", { type: "text", placeholder: "Wyszukaj użytkownika", oninput: searchUser});
     const createButton = $$("div", {className: "cool button", style: "display: flex; margin: 0 5px 0 5px ", onclick: createConversation}, [
         $$("img", { 
             src: "icons/accept.png",
@@ -127,7 +127,7 @@ const NewConversation = () => {
                 align-self: center; 
              `
         }),
-        $$("span", { innerText: "stwórz", style: "align-self: center; margin-left: 5px" })
+        $$("span", { innerText: "Stwórz", style: "align-self: center; margin-left: 5px" })
     ]);
 
     sendSocket(createGetAvailableMessageRecipientsMessage())
@@ -147,9 +147,9 @@ const NewConversation = () => {
             searchInput
         ]),
         $$("div", { id: "search-results" }, [ searchedRecipientsElem.elem ]),
-        $$("div", { innerText: "dodani:", style: "line-height: 2em"}),
+        $$("div", { innerText: "Dodani:", style: "line-height: 2em"}),
         $$("div", { id: "recipients" }, [ addedRecipients.elem ]),
-        $$("div", { innerText: "dostępni:", style: "line-height: 2em"}),
+        $$("div", { innerText: "Dostępni:", style: "line-height: 2em"}),
         $$("div", { id: "available-recipients" }, [ availableRecipients.elem ]),
     ]);
 }

@@ -1,6 +1,6 @@
 import { $$ } from "./elemMake.js";
 
-const CoolButton = (({ style = "", onclick = () => {}, text = "kliknij mnie", src = "icons/cog.png" }) => {
+const CoolButton = (({ style = "", onclick = () => {}, text = "Kliknij mnie", src = "icons/cog.png" }) => {
     return $$("div", { 
         style,
         className: "entry button cool", 

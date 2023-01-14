@@ -36,11 +36,11 @@ const loggedIn = () => {
 };
 
 const connecting = () => {
-  makeRoot([$$("h1", { innerText: "łączenie... " })]);
+  makeRoot([$$("h1", { innerText: "Łączenie... " })]);
 };
 
 const couldNotConnect = () => {
-  makeRoot([$$("h1", { innerText: "nie udało się połączyć :(" })]);
+  makeRoot([$$("h1", { innerText: "Nie udało się połączyć :(" })]);
 };
 
 const login = async () => {

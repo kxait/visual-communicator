@@ -12,7 +12,7 @@ import { userNameById } from "./userNameById.js";
 
 const Messages = ({ conversationId, onSubscribe }) => {
     if(conversationId == null) {
-        return $$("div", { innerText: "wybierz konwersacje!" });
+        return $$("div", { innerText: "Wybierz konwersacje!" });
     }
 
     let blockedUsers = []

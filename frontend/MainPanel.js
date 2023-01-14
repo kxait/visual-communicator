@@ -68,11 +68,11 @@ const MainPanel = () => {
                 Username(),
                 $$("div", {className: "entry button cool", onclick: onSettings}, [
                     $$("img", { className: "icon", alt: "settings icon", src: "icons/cog.png" }),
-                    $$("span", { innerText: "ustawienia" })
+                    $$("span", { innerText: "Ustawienia" })
                 ]),
                 $$("div", {className: "entry button cool", onclick: logout }, [
                     $$("img", { className: "icon", alt: "wyloguj icon", src: "icons/server_go.png" }),
-                    $$("span", { innerText: "wyloguj" })
+                    $$("span", { innerText: "Wyloguj" })
                 ]),
             ])
         ]),

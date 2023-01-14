@@ -113,7 +113,7 @@ const conversationsPanelOnLoadedProfileData = profileData => {
                 className: "entry button cool", 
                 onclick: onNewConversation}, [
                     $$("img", { className: "icon", src: "icons/email_add.png", alt: "new conversation icon"}),
-                    $$("span", { innerText: "nowa konwersacja" })
+                    $$("span", { innerText: "Nowa konwersacja" })
                 ]),
             ...(conversations.map(c => Conversation({ 
                 name: conversationNameById[c.id], 

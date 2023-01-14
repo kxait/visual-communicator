@@ -82,28 +82,28 @@ const ConversationProfile = ({ conversationId }) => {
       ...(isAuthor 
             ? [ CoolButton({
                 src: "icons/textfield_rename.png",
-                text: "zmień nazwę",
+                text: "Zmień nazwę",
                 style: "margin-right: 10px",
                 onclick: onRenameConversation
             }),
             CoolButton({
                 src: "icons/cancel.png",
-                text: "usuń",
+                text: "Usuń",
                 style: "margin-right: 10px",
                 onclick: onDelete
               }) ]
             : [ CoolButton({
                 src: "icons/door_out.png",
-                text: "opuść",
+                text: "Opuść",
                 style: "margin-right: 10px",
                 onclick: onLeave
               }) ])
     ]),
     later(userNameById(conversation.author), data => 
-        $$("p", { innerText: `konwersacja stworzona przez ${data}`
+        $$("p", { innerText: `Konwersacja stworzona przez ${data}`
     })).elem,
     $$("fieldset", { style: "width: fit-content; " }, [
-      $$("legend", { innerText: "członkowie" }),
+      $$("legend", { innerText: "Członkowie" }),
       members.elem,
     ]),
   ]);

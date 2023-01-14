@@ -74,7 +74,7 @@ const Settings = () => {
 
         sendSocket(createAdminCreateNewUser(username, password, false))
             .then(data => {
-                createNotification({ text: "Udało się stworzyć użytkownika" });
+                createNotification({ text: "Udało się stworzyć użytkownika." });
                 redo();
             })
     }

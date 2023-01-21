@@ -1,4 +1,4 @@
-# pwjj-proj-kron
+# visual communicator
 Internet communicator project for Java Software Development university class
 
 ## Stack
